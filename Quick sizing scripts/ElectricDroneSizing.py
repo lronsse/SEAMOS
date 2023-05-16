@@ -9,15 +9,14 @@ def sizing(n_p, E_d, R, LD, non_cB, g, W_pl, W_auto, a, b, con):
     WbW = (1 + non_cB) * ((g / (n_p * E_d)) * (R / LD))  # -, battery weight fraction
 
     # solve implicit equation for M_TO
-    # print(WbW)
     def minimise_func(W_TO_try):  # Try a W_TO and see the match
-        WeW = a * W_TO_try + b
+        WeW = a * W_TO_try * 0.224809 + b  # Get empty weight fraction from stat relations
         return abs(W_pl + W_auto + WbW*W_TO_try + WeW*W_TO_try - W_TO_try)
 
     W_TO = optimise.minimize_scalar(minimise_func, bounds=(0., 40000.), method='bounded').x
     WplW = W_pl / W_TO
     WaW = W_auto / W_TO
-    WeW = a * W_TO + b
+    WeW = a * W_TO * 0.224809 + b
     W_TO *= con
     print('Wto', W_TO)
     print('WplW', WplW)
@@ -26,6 +25,7 @@ def sizing(n_p, E_d, R, LD, non_cB, g, W_pl, W_auto, a, b, con):
     print('WeW', WeW)
     print('Takeoff Mass [kg]:', W_TO/9.81)
     print('Cruise Energy Consumtpion [MJ]:', WbW*W_TO*E_d/9.81/(10**6))
+
 
 sizing_data = {
     'Puffin': {
