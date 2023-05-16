@@ -35,7 +35,6 @@ m_batt_sub = E_sub/(60*60)/e_dens_batt
 m_batt_sens = (t_route+2*t_fly)*p_sens/(60*60)/e_dens_batt
 m_batt_0 = m_batt_sub + m_batt_sens
 
-
 print(f'Req. battery mass for submarine navigation [kg]: {m_batt_sub}')
 print(f'Battery mass excl. airborne propulsion [kg]: {m_batt_0}')
 print(f'Route duration [min] {t_route/60} for {n_units} units')
