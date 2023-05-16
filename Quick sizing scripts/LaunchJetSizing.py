@@ -9,8 +9,8 @@ from math import pi, sqrt
 import matplotlib.pyplot as plt
 rho_w = 1000. # kg/m3
 p_a = 1e5 # Pa
-p_r = 100e5 # Pa
-V_r = 0.0001 # m3
+p_r = 8e5 # Pa
+V_r = 0.001 # m3
 V_c = 0.001 # m3
 A_t = (0.02/2)**2 * pi # m2
 dt = 0.001
@@ -44,7 +44,7 @@ if plot_t:
 
     I_tot = sum(Ftarr) * dt
     print('total impulse:', I_tot, '[Ns]')
-    m_test = 5.
+    m_test = 20.
     print(f'dV for {m_test}kg: {I_tot / m_test} m/s')
 
 
