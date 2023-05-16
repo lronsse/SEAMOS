@@ -12,7 +12,7 @@ e_dens_batt = 150  # Wh/kg, battery energy density
 t_fly = 30*60  # s, flight duration, one way
 
 """Submarine Route Definition """
-v_sub = 1.5  # m/s, speed of navigation
+v_sub = 1.  # m/s, speed of navigation
 
 n_units = 8  # number of units monitored in one go
 mu_route = .7  # -, efficiency of the route
@@ -23,10 +23,11 @@ t_route = s_route/v_sub  # s
 # current ignored, max current 1 m/s
 
 """ Hydrodynamic Definition """
-a = 1.5  # m
-b = 0.2  # m
+a = 2.5  # m
+b = 1.  # m
 rho_w = 1000.  # kg/m3, water density
 S_sub = np.pi*a*b  # m2 sub cross area, ellipse model, iterate pls
+S_sub = 3  # m2, redefined
 Cd_sub = 0.82  # -, Cd of a cylinder
 
 """Submarine Battery Sizing"""

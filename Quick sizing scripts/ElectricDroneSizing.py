@@ -30,7 +30,7 @@ def sizing(n_p, E_d, R, LD, non_cB, g, W_pl, W_auto, a, b, con):
 sizing_data = {
     'Puffin': {
         # Payload parameters
-        'W_pl': 3.2*9.81,  # N, payload weight
+        'W_pl': 4.*9.81,  # N, payload weight
 
         # Flight parameters
         'W_auto': 0*9.81,  # N, autonomous weight
@@ -50,7 +50,7 @@ sizing_data = {
     },
     'MultiSystem': {
         # Payload parameters
-        'W_pl': 10.*9.81,  # N, payload weight
+        'W_pl': 7.*9.81,  # N, payload weight
 
         # Flight parameters
         'W_auto': 0.5*9.81,  # N, autonomous weight
