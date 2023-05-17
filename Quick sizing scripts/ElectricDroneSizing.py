@@ -36,6 +36,10 @@ def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, monitoring_weight, autopi
     return WplW, WbW, WaW, WeW, W_TO
 
 
+# Calculated from SkyLane UAV (https://sky-drones.com/skylane)
+our_a = -0.0013636
+our_b = 0.545
+
 sizing_data = {
     'Puffin': {
         # Payload parameters
@@ -52,8 +56,8 @@ sizing_data = {
         # Constants
         'E_d': 150*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
-        'a': -0.00296,  # -, regression constant for small RC Uav
-        'b': 0.87,  # -, regression constant for small RC Uav
+        'a': our_a,  # -, regression constant for small RC Uav
+        'b': our_b,  # -, regression constant for small RC Uav
 
         # Other
         'con': 1.3  # -, Contingency for actuating mechanisms, other features
@@ -73,8 +77,8 @@ sizing_data = {
         # Constants
         'E_d': 150*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
-        'a': -0.00296,  # -, regression constant for small RC Uav
-        'b': 0.87,  # -, regression constant for small RC Uav
+        'a': our_a,  # -, regression constant for small RC Uav
+        'b': our_b,  # -, regression constant for small RC Uav
 
         # Other
         'con': 1.  # -, Contingency for actuating mechanisms, other features
@@ -94,8 +98,8 @@ sizing_data = {
         # Constants
         'E_d': 150*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
-        'a': -0.00296,  # -, regression constant for small RC Uav
-        'b': 0.87,  # -, regression constant for small RC Uav
+        'a': our_a,  # -, regression constant for small RC Uav
+        'b': our_b,  # -, regression constant for small RC Uav
 
         # Other
         'con': 1.  # -, Contingency for actuating mechanisms, other features
@@ -104,10 +108,18 @@ sizing_data = {
 
 
 def test_sizing_verification():
-    test_WplW, test_WbW, test_WaW, test_WeW, test_W_TO = sizing(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, -0.9, 1.0, 1.1, verbose=False)
+    test_WplW, test_WbW, test_WaW, test_WeW, test_W_TO = sizing(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0, 0.8, -0.9, 1.0, 1.1, verbose=False)
     assert abs(test_WbW - 33.75) < 1
     assert abs(test_W_TO - 183.538) < 1
     assert abs(test_WeW - -32.759) < 1
+
+
+def test_sizing_validation():
+    # Validation with SkyLane-250: https://sky-drones.com/skylane
+    test_WplW, test_WbW, test_WaW, test_WeW, test_W_TO = sizing(n_p=0.7, E_d=250*3600, R=300000, LD=12, non_cB=0.05, g=9.81,
+                                                                payload_weight=1.2*9.81, autopilot_weight=0, monitoring_weight=0,
+                                                                a=-0.0013636, b=0.545, con=1, verbose=True)
+    assert abs(test_W_TO - 15*9.81) < 15
 
 
 if __name__ == '__main__':
