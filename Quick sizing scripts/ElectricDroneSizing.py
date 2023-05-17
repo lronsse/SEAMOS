@@ -25,6 +25,8 @@ def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, autopilot_weight, a, b, c
     print(f"                   Take-Off Weight: {W_TO:3.2f} [N]")
     print(f"                      Takeoff Mass: {W_TO / 9.81:3.2f} [kg]")
     print(f"         Cruise Energy Consumption: {WbW * W_TO * E_d / 9.81 / (10 ** 6):3.2f} [MJ]")
+    print(f"                                  : {(WbW * W_TO * E_d / 9.81 / (10 ** 3))/3600:3.2f} [kWh]")
+    return WplW, WbW, WaW, WeW, W_TO
 
 
 sizing_data = {
@@ -89,6 +91,8 @@ sizing_data = {
         'con': 1.  # -, Contingency for actuating mechanisms, other features
     }
 }
+
+
 
 if __name__ == '__main__':
     for name, params in sizing_data.items():
