@@ -7,7 +7,7 @@ assumptions: rocvtol = 1m/s, roccruise = 1
 
 Outputs: Wing surface, battery mass, power/thrust required, lift over drag
 
-
+todo = nhops plot, provide l/d to Jan
 
 """
 import matplotlib.pyplot as plt
@@ -219,6 +219,7 @@ class Configuration:
         self.battery_mass_cruise = self.energy_required_cruise / energy_density
         self.lift_drag_cruise = lift_drag(self.wing_loading_design)
 
+        self.battery_mass_total = self.battery_mass_vtol + self.battery_mass_cruise
 
 
 
@@ -228,9 +229,18 @@ g = 9.81
 d_flight = 80000
 energy_density = 150
 
-tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, 60, 2, True, 1, 20, 10, 0.65)
-puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, 37.73, 2, False, 1, 20, 0, 0.65)
-hybrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.5, 0.8, 0.75, 10, 2000, 6000, 27.09, 2, True, 1, 20, 80, 0.65)
+
+n_hops = np.arange(0, 40, 1)
+tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, 21.4, 2, True, 1, 15, n_hops, 0.65)
+puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, 37.73, 2, False, 1, 15, n_hops, 0.65)
+hybrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.5, 0.8, 0.75, 10, 2000, 6000, 27.09, 2, True, 1, 15, n_hops, 0.65)
+
+plt.plot(n_hops, tailsitter.battery_mass_total, label='tailsitter')
+plt.plot(n_hops, puffin.battery_mass_total, label='puffin')
+plt.plot(n_hops, hybrid.battery_mass_total, label='hybrid')
+plt.xlabel('nhops')
+plt.ylabel('battery mass')
+plt.show()
 
 
 print(f'power vtol: tailsitter = {tailsitter.power_required_vtol}, puffin = {puffin.power_required_cruise}, Hybrid = {hybrid.power_required_vtol}')
