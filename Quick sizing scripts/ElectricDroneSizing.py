@@ -20,19 +20,23 @@ def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, monitoring_weight, autopi
     WeW = a * W_TO * 0.224809 + b
     W_TO *= con
     if verbose:
-        print(f"  Payload Weight / Take-off Weight: {WplW:1.4f} [-]")
-        print(f"  Battery Weight / Take-off Weight: {WbW:1.4f} [-]")
-        print(f"Autopilot Weight / Take-off Weight: {WaW:1.4f} [-]")
+        print(f"   Payload Weight / Take-off Weight: {WplW:1.4f} [-]")
+        print(f"   Battery Weight / Take-off Weight: {WbW:1.4f} [-]")
+        print(f" Autopilot Weight / Take-off Weight: {WaW:1.4f} [-]")
         print(f"Monitoring Weight / Take-off Weight: {WmbW:1.4f} [-]")
-        print(f"    Empty Weight / Take-off Weight: {WeW:1.4f} [-]")
-        print(f"                   Take-Off Weight: {W_TO:3.2f} [N]\n")
-        print(f"                      Takeoff Mass: {W_TO / 9.81:3.2f} [kg]")
-        print(f"                      Payload Mass: {(W_TO*WplW) / 9.81:3.2f} [kg]")
-        print(f"                      Battery Mass: {(W_TO*WbW) / 9.81:3.2f} [kg]")
-        print(f"                    Autopilot Mass: {(W_TO*WaW) / 9.81:3.2f} [kg]")
-        print(f"                        Empty Mass: {(W_TO*WeW) / 9.81:3.2f} [kg]\n")
-        print(f"         Cruise Energy Consumption: {WbW * W_TO * E_d / 9.81 / (10 ** 6):3.2f} [MJ]")
-        print(f"                                  : {WbW * W_TO * E_d / 9.81 / (10 ** 3) / 3600:3.2f} [kWh]")
+        print(f"     Empty Weight / Take-off Weight: {WeW:1.4f} [-]")
+        print(f"                    Take-Off Weight: {W_TO:3.2f} [N]\n")
+        print(f"                       Takeoff Mass: {W_TO / 9.81:3.2f} [kg]")
+        print(f"                       Payload Mass: {(W_TO*WplW) / 9.81:3.2f} [kg]")
+        print(f"                       Battery Mass: {(W_TO*WbW) / 9.81:3.2f} [kg]")
+        print(f"                     Autopilot Mass: {(W_TO*WaW) / 9.81:3.2f} [kg]")
+        print(f"                    Monitoring Mass: {(W_TO*WmbW) / 9.81:3.2f} [kg]")
+        print(f"                         Empty Mass: {(W_TO*WeW) / 9.81:3.2f} [kg]\n")
+        consumed_energy = WbW * W_TO * E_d / 9.81
+        print(f"          Cruise Energy Consumption: {consumed_energy / (10 ** 6):3.2f} [MJ] or {consumed_energy / (10 ** 3) / 3600:3.2f} [kWh]")
+        print(f"                       Battery Cost: {(consumed_energy / 3600) * 1:3.0f} euro")
+        print(f"            Monitoring Battery Cost: {(W_TO * WmbW * E_d / 9.81 / 3600) * 1:3.0f} euro")
+
     return WplW, WbW, WaW, WeW, W_TO
 
 
@@ -47,14 +51,14 @@ sizing_data = {
         'monitoring_weight': 3.6437102010738838*9.81,  # N, monitoring weight
 
         # Flight parameters
-        'autopilot_weight': 0*9.81,  # N, autonomous weight
+        'autopilot_weight': 0.5*9.81,  # N, autonomous weight
         'n_p': 0.7,  # -, propulsive efficiency
         'LD': 12,  # -, lift to drag ratio
         'non_cB': 0.05,  # Non cruise energy consumption
 
         'R': 80000,  # m, flight range
         # Constants
-        'E_d': 250*3600,  # J/kg, energy density batteries
+        'E_d': 200*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
         'a': our_a,  # -, regression constant for small RC Uav
         'b': our_b,  # -, regression constant for small RC Uav
@@ -75,7 +79,7 @@ sizing_data = {
 
         'R': 80000,  # m, flight range
         # Constants
-        'E_d': 250*3600,  # J/kg, energy density batteries
+        'E_d': 200*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
         'a': our_a,  # -, regression constant for small RC Uav
         'b': our_b,  # -, regression constant for small RC Uav
@@ -96,7 +100,7 @@ sizing_data = {
 
         'R': 80000,  # m, flight range
         # Constants
-        'E_d': 250*3600,  # J/kg, energy density batteries
+        'E_d': 200*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
         'a': our_a,  # -, regression constant for small RC Uav
         'b': our_b,  # -, regression constant for small RC Uav
