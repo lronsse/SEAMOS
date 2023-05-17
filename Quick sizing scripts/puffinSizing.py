@@ -69,8 +69,8 @@ def E_prop(dv, s):
 
 E_survey = n_units * E_prop(dv_unit, l_unit)
 E_trans = (n_units - 1) * E_prop(dv_trans, s_trans)
-print(f'Unit surveying energy demand: {E_survey/10**6} [MJ]')
-print(f'Unit surveying energy demand: {E_trans/10**6} [MJ]')
+print(f'Monitoring energy demand: {E_survey/10**6} [MJ]')
+print(f'Transition energy demand: {E_trans/10**6} [MJ]')
 
 """ Evaluate sensor energy demand"""
 print(f'Sensor energy demand: {t_mission*P_sensors/10**6} [MJ]   NOT PROPAGATED TO BATTERY WEIGHT')
