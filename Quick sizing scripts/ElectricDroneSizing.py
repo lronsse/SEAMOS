@@ -30,7 +30,7 @@ def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, autopilot_weight, a, b, c
         print(f"                    Autopilot Mass: {(W_TO*WaW) / 9.81:3.2f} [kg]")
         print(f"                        Empty Mass: {(W_TO*WeW) / 9.81:3.2f} [kg]\n")
         print(f"         Cruise Energy Consumption: {WbW * W_TO * E_d / 9.81 / (10 ** 6):3.2f} [MJ]")
-        print(f"                                  : {(WbW * W_TO * E_d / 9.81 / (10 ** 3))/3600:3.2f} [kWh]")
+        print(f"                                  : {WbW * W_TO * E_d / 9.81 / (10 ** 3) / 3600:3.2f} [kWh]")
     return WplW, WbW, WaW, WeW, W_TO
 
 
@@ -97,6 +97,12 @@ sizing_data = {
     }
 }
 
+
+def test_sizing_verification():
+    test_WplW, test_WbW, test_WaW, test_WeW, test_W_TO = sizing(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, -0.9, 1.0, 1.1, verbose=False)
+    assert abs(test_WbW - 33.75) < 1
+    assert abs(test_W_TO - 183.538) < 1
+    assert abs(test_WeW - -32.759) < 1
 
 
 if __name__ == '__main__':
