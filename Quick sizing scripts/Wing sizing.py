@@ -1,20 +1,23 @@
+"""
+Inputs: v_stall, v_cruise, configuration, mtom, n_hops, energy density battery, clmax, rate of climb, h_hop, n_hops, roc_vtol
+
+required inputs: mtom, nhops, thop, rocvtol
+
+assumptions: rocvtol = 1m/s, roccruise = 1
+
+Outputs: Wing surface, battery mass, power/thrust required, lift over drag
+
+
+
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 
-"""
-Inputs: v_stall, v_cruise, configuration, mtom, n_hops, energy density battery, clmax, battery mass fractions
-
-
-Outputs: Wing surface, cruise battery mass, thrust required
-
-"""
-
-
 class Configuration:
-
-    def __init__(self, name, v_stall, v_cruise, cl_max, cd_0, cd_vtol, eta_p, e, ar, h_cruise, h_ceiling, mtom):
+    def __init__(self, name, v_stall, v_cruise, cl_max, cd_0, cd_vtol, eta_p, e, ar, h_cruise, h_ceiling, mtom, roc, VTOL, n_prop, h_hop, n_hops, roc_vtol):
         """
         class of aircraft type
+
         :param name: name of the architecture
         :param v_stall: stall speed of the architecture
         :param v_cruise: cruise speed of the architecture
@@ -27,10 +30,17 @@ class Configuration:
         :param h_cruise: cruise altitude
         :param h_ceiling: service ceiling altitude
         :param mtom: maxium take-off mass
+        :param roc: rate off climb required during flight
+        :param VTOL: True/False, whether you need vtol or not
+        :param n_prop: amount of proppelors used (use one for general comparison)
+        :param t_hop: TO + Land + Hover time per hop
+        :param n_hops: amount of hops needed per mission
+        :param roc_vtol: rate of climb required for vtol
         """
         self.name = name
         self.v_stall = v_stall
         self.v_cruise = v_cruise
+        self.v_max = self.v_cruise * 1.25
         self.cl_max = cl_max
         self.cd_0 = cd_0
         self.cd_vtol = cd_vtol
@@ -42,6 +52,20 @@ class Configuration:
         self.k = 1 / (np.pi * e * ar)
         self.lift_drag_max = 10
         self.mtom = mtom
+        self.v_take_off = self.v_stall * 1.15
+        self.cl_take_off = self.cl_max / 1.21
+        self.cd_take_off = self.cd_0 + self.k * self.cl_take_off ** 2
+        self.roc = roc
+        self.n_prop = n_prop
+        self.s_ratio = 1.2
+        self.t_cruise = d_flight / self.v_cruise
+        self.h_hop = h_hop
+        self.n_hops = n_hops
+        self.roc_vtol = roc_vtol
+        self.plot = True
+        optimisation = True
+        if optimisation:
+            self.plot = False
 
 
         def calc_isa(h):
@@ -75,12 +99,7 @@ class Configuration:
             wing_loading = 0.5 * v_stall ** 2 * rho_0 * cl_max 
             return wing_loading
 
-
-        def thrust_weight_cruise(h_cruise, v_cruise, cd_0, ws):
-            rho_c = calc_isa(h_cruise)[2]
-            tw = 0.5 * self.rho_cruise * v_cruise ** 2 * cd_0 / ws + self.k * ws / (0.5 * rho_c * v_cruise ** 2)
-            return tw
-        def required_power_vmax(v_max, ws):
+        def required_power_flight(v, ws):
             """
             Function describing the required power to fly at max speed
 
@@ -88,7 +107,7 @@ class Configuration:
             :param ws: wing loading
             :return: weight over power required to fly at max speed
             """
-            weight_power = eta_p / (0.5 * rho_0 * v_max ** 3 * cd_0 / ws + 2 * self.k * ws/ (self.rho_cruise * v_max))
+            weight_power = eta_p / (0.5 * rho_0 * v ** 3 * cd_0 / ws + 2 * self.k * ws/ (self.rho_cruise * v))
             return weight_power
 
         def required_power_ceiling(ws):
@@ -103,16 +122,49 @@ class Configuration:
             weight_power = sigma_ceiling / (np.sqrt(2 * ws / (rho_ceiling * np.sqrt(3 * cd_0 / self.k))) * 1.155 / (self.lift_drag_max * eta_p))
             return weight_power
 
+        def required_power_rate_of_climb(ws):
+            weight_power = 1 / ( self.roc / eta_p + np.sqrt(2 * ws / (self.rho_cruise * np.sqrt(3 * cd_0 / self.k))) * 1.155 / (self.lift_drag_max * eta_p))
+            return weight_power
+
+        if VTOL:
+            def required_power_vtol(ws):
+                """
+                function determining the power required to take off vertically
+                :param ws: wing sizing
+                :return: power required to take off vertically
+                """
+                tw = 1.2 * (1 + cd_vtol * 0.5 * rho_0 * self.roc_vtol ** 2 * self.s_ratio / ws)
+                treq = tw * self.mtom * g
+                fm = 0.4742 * treq ** 0.0793
+                dl = 3.2261 * self.mtom + 74.991
+                sp = self.mtom * g / (dl * self.n_prop)
+                vh = np.sqrt(treq / (2 * rho_0 * sp))
+                vi = (-self.roc_vtol / (2 * vh) + np.sqrt((self.roc_vtol / (2 * vh)) ** 2 + 1)) * vh
+                pwreq = 1 / (treq * vi / (fm * self.mtom * g))
+                return pwreq
+
+        def lift_drag(ws):
+            tw = 0.5 * self.rho_cruise * v_cruise ** 2 * cd_0 / ws + self.k * ws / (0.5 * self.rho_cruise * v_cruise ** 2)
+            ld = 1 / tw
+            return ld
+
+
+
         self.rho_cruise = calc_isa(h_cruise)[2]
         self.wing_loading_max = wing_loading_stall(v_stall, cl_max)
 
+        # -------- Plotting ------------
         wingloading = np.ones(5)
         wingloading = wingloading * self.wing_loading_max
-        begin = 0
-        end = 350
+        begin = 10
+        end = self.wing_loading_max * 1.1
         ws = np.arange(begin, end)
         a = required_power_ceiling(ws)
-        b = required_power_vmax(v_cruise, ws)
+        b = required_power_flight(self.v_max ,ws)
+        cruise = required_power_flight(self.v_cruise, ws)
+        c = required_power_rate_of_climb(ws)
+        if VTOL:
+            d = required_power_vtol(ws)
 
         '''
         Design requirements:
@@ -123,18 +175,49 @@ class Configuration:
         below vmax req
         left of stall req
         '''
-        plt.plot(ws, a, label='ceiling req')
-        plt.plot(ws, b, label='vmax req')
-        plt.plot(wingloading, np.linspace(0, 5, 5), label='stall req')
-        plt.legend()
-        plt.show()
+        if self.plot:
+            plt.plot(ws, a, label='ceiling req')
+            plt.plot(ws, b, label='vmax req')
+            plt.plot(ws, cruise, label='cruise power needed, not design limiting')
+            plt.plot(ws, c, label='roc req')
+            if VTOL:
+                plt.plot(ws, d, label='vtol req')
+            plt.plot(wingloading, np.linspace(0, 1, 5), label='stall req')
+            plt.xlabel('W/S')
+            plt.ylabel('W/P')
+            plt.legend()
+            plt.grid()
+            plt.title(f'W/S-W/P of {self.name}')
+            plt.show()
 
-        self.wing_loading_design = float(input('Choose design point W/S: '))
-        self.power_loading_design = float(input('Choose design point W/P: '))
+        # ------- Design Selection --------
+
+
+
+        if optimisation:
+            self.wing_loading_design = self.wing_loading_max
+            self.power_loading_design_cruise = required_power_flight(self.v_max, self.wing_loading_design)
+            if VTOL:
+                self.power_loading_design_vtol = required_power_vtol(self.wing_loading_design)
+        else:
+            self.wing_loading_design = float(input('Choose design point W/S: '))
+            self.power_loading_design_cruise = float(input('Choose design point W/P cruise: '))
+            if VTOL:
+                self.power_loading_design_vtol = float(input('Choose design point W/P vtol: '))
 
         self.wing_surface = self.mtom * g / self.wing_loading_design
-        self.power_required = self.mtom * g / self.power_loading_design
+        self.power_required_cruise = self.mtom * g / self.power_loading_design_cruise
+        if VTOL:
+            self.power_required_vtol = self.mtom * g / self.power_loading_design_vtol
+            self.t_hop = self.h_hop / self.roc_vtol
+            self.t_hops = self.n_hops * self.t_hop * 2.5
+            self.energy_required_vtol = self.power_required_vtol * self.t_hops / 3600
+            self.battery_mass_vtol = self.energy_required_vtol / energy_density
 
+        self.energy_required_cruise = self.power_required_cruise * self.t_cruise / 3600
+
+        self.battery_mass_cruise = self.energy_required_cruise / energy_density
+        self.lift_drag_cruise = lift_drag(self.wing_loading_design)
 
 
 
@@ -142,15 +225,22 @@ class Configuration:
 
 rho_0 = 1.225
 g = 9.81
+d_flight = 80000
+energy_density = 150
+
+tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, 60, 2, True, 1, 20, 10, 0.65)
+puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, 37.73, 2, False, 1, 20, 0, 0.65)
+hybrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.5, 0.8, 0.75, 10, 2000, 6000, 27.09, 2, True, 1, 20, 80, 0.65)
 
 
-tailsitter = Configuration('Tailsitter', 20, 40, 1.4, 0.01, 0.1, 0.8, 0.75, 10, 200, 1000, 60)
+print(f'power vtol: tailsitter = {tailsitter.power_required_vtol}, puffin = {puffin.power_required_cruise}, Hybrid = {hybrid.power_required_vtol}')
+print(f'battery mass: tailsitter= {tailsitter.battery_mass_vtol} (tot = {tailsitter.battery_mass_cruise + tailsitter.battery_mass_vtol}), puffin = {puffin.battery_mass_cruise}, hybrid = {hybrid.battery_mass_vtol} (tot = {hybrid.battery_mass_cruise + hybrid.battery_mass_vtol})')
+print(f'L/D cruise: tailsitter= {tailsitter.lift_drag_cruise}, puffin = {puffin.lift_drag_cruise}, hybrid = {hybrid.lift_drag_cruise}')
+#print(tailsitter.wing_surface, tailsitter.battery_mass_cruise, tailsitter.battery_mass_vtol, tailsitter.wing_loading_max)
+#print(puffin.wing_surface, puffin.battery_mass_cruise, puffin.lift_drag_cruise)
+#print('test')
 
-
-print(tailsitter.wing_surface, tailsitter.power_required)
-print('test')
 '''
-
 v_stall = 10 # m/s
 v_max = 20
 cl_max = 1.4
@@ -187,8 +277,6 @@ K_2 = 8
 cte = 8
 c_r = 0.00789 / (cte)
 
-
-
 def wing_loading_stall(tw):
     return 0.5 * v_stall ** 2 * rho_0 * cl_max + tw * 0 #tw*0 for graphing
 print(f'wing loading requirement due to stall = {wing_loading_stall(0)} N/m^2')
@@ -222,7 +310,7 @@ def thrust_weight_vtol(ws):
     return tw, treq, pwreq
 
 
-print(f'lol = {1 / thrust_weight_cruise(wing_loading_req)}')
+print(f'{1 / thrust_weight_cruise(wing_loading_req)}')
 
 D_water = 0.5 * rho_water * S_water * rc **2 * (c_f + c_r)
 Drag = thrust_weight_vtol(wing_loading_req)[1] + D_water
