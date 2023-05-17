@@ -54,7 +54,7 @@ sizing_data = {
 
         'R': 80000,  # m, flight range
         # Constants
-        'E_d': 150*3600,  # J/kg, energy density batteries
+        'E_d': 250*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
         'a': our_a,  # -, regression constant for small RC Uav
         'b': our_b,  # -, regression constant for small RC Uav
@@ -75,7 +75,7 @@ sizing_data = {
 
         'R': 80000,  # m, flight range
         # Constants
-        'E_d': 150*3600,  # J/kg, energy density batteries
+        'E_d': 250*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
         'a': our_a,  # -, regression constant for small RC Uav
         'b': our_b,  # -, regression constant for small RC Uav
@@ -96,7 +96,7 @@ sizing_data = {
 
         'R': 80000,  # m, flight range
         # Constants
-        'E_d': 150*3600,  # J/kg, energy density batteries
+        'E_d': 250*3600,  # J/kg, energy density batteries
         'g': 9.81,  # m/s2, gravity constant
         'a': our_a,  # -, regression constant for small RC Uav
         'b': our_b,  # -, regression constant for small RC Uav
