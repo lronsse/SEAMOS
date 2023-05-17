@@ -4,7 +4,7 @@ Adapted from Soham's implementation
 import scipy.optimize as optimise
 
 
-def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, autopilot_weight, a, b, con):
+def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, autopilot_weight, a, b, con, verbose=True):
     """Class I sizing function, taking unzipped parameter dict"""
     WbW = (1 + non_cB) * ((g / (n_p * E_d)) * (R / LD))  # -, battery weight fraction
 
@@ -18,14 +18,19 @@ def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, autopilot_weight, a, b, c
     WaW = autopilot_weight / W_TO
     WeW = a * W_TO * 0.224809 + b
     W_TO *= con
-    print(f"  Payload Weight / Take-off Weight: {WplW:1.4f} [-]")
-    print(f"  Battery Weight / Take-off Weight: {WbW:1.4f} [-]")
-    print(f"Autopilot Weight / Take-off Weight: {WaW:1.4f} [-]")
-    print(f"    Empty Weight / Take-off Weight: {WeW:1.4f} [-]")
-    print(f"                   Take-Off Weight: {W_TO:3.2f} [N]")
-    print(f"                      Takeoff Mass: {W_TO / 9.81:3.2f} [kg]")
-    print(f"         Cruise Energy Consumption: {WbW * W_TO * E_d / 9.81 / (10 ** 6):3.2f} [MJ]")
-    print(f"                                  : {(WbW * W_TO * E_d / 9.81 / (10 ** 3))/3600:3.2f} [kWh]")
+    if verbose:
+        print(f"  Payload Weight / Take-off Weight: {WplW:1.4f} [-]")
+        print(f"  Battery Weight / Take-off Weight: {WbW:1.4f} [-]")
+        print(f"Autopilot Weight / Take-off Weight: {WaW:1.4f} [-]")
+        print(f"    Empty Weight / Take-off Weight: {WeW:1.4f} [-]")
+        print(f"                   Take-Off Weight: {W_TO:3.2f} [N]\n")
+        print(f"                      Takeoff Mass: {W_TO / 9.81:3.2f} [kg]")
+        print(f"                      Payload Mass: {(W_TO*WplW) / 9.81:3.2f} [kg]")
+        print(f"                      Battery Mass: {(W_TO*WbW) / 9.81:3.2f} [kg]")
+        print(f"                    Autopilot Mass: {(W_TO*WaW) / 9.81:3.2f} [kg]")
+        print(f"                        Empty Mass: {(W_TO*WeW) / 9.81:3.2f} [kg]\n")
+        print(f"         Cruise Energy Consumption: {WbW * W_TO * E_d / 9.81 / (10 ** 6):3.2f} [MJ]")
+        print(f"                                  : {(WbW * W_TO * E_d / 9.81 / (10 ** 3))/3600:3.2f} [kWh]")
     return WplW, WbW, WaW, WeW, W_TO
 
 
