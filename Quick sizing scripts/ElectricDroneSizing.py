@@ -2,9 +2,10 @@
 Adapted from Soham's implementation
 """
 import scipy.optimize as optimise
+import wing_sizing as ws
 
 
-def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, monitoring_weight, autopilot_weight, a, b, con, verbose=True):
+def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, monitoring_weight, autopilot_weight, a, b, con, verbose=False):
     """Class I sizing function, taking unzipped parameter dict"""
     WbW = (1 + non_cB) * ((g / (n_p * E_d)) * (R / LD))  # -, battery weight fraction
 
@@ -122,7 +123,7 @@ def test_sizing_validation():
     # Validation with SkyLane-250: https://sky-drones.com/skylane
     test_WplW, test_WbW, test_WaW, test_WeW, test_W_TO = sizing(n_p=0.7, E_d=250*3600, R=300000, LD=12, non_cB=0.05, g=9.81,
                                                                 payload_weight=1.2*9.81, autopilot_weight=0, monitoring_weight=0,
-                                                                a=-0.0013636, b=0.545, con=1, verbose=True)
+                                                                a=-0.0013636, b=0.545, con=1, verbose=False)
     assert abs(test_W_TO - 15*9.81) < 15
 
 
