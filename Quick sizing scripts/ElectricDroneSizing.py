@@ -47,13 +47,13 @@ our_b = 0.545
 sizing_data = {
     'Puffin': {
         # Payload parameters
-        'payload_weight': .5*9.81,  # N, payload weight
+        'payload_weight': 1.5*9.81,  # N, payload weight
         'monitoring_weight': 3.6437102010738838*9.81,  # N, monitoring weight
 
         # Flight parameters
         'autopilot_weight': 0.5*9.81,  # N, autonomous weight
-        'n_p': 0.7,  # -, propulsive efficiency
-        'LD': 12,  # -, lift to drag ratio
+        'n_p': 0.8,  # -, propulsive efficiency
+        'LD': 15.37,  # -, lift to drag ratio
         'non_cB': 0.05,  # Non cruise energy consumption
 
         'R': 80000,  # m, flight range
@@ -68,14 +68,14 @@ sizing_data = {
     },
     'MultiSystem': {
         # Payload parameters
-        'payload_weight': 7.*9.81,  # N, payload weight
-        'monitoring_weight': 0. * 9.81,  # N, monitoring weight
+        'payload_weight': 8*9.81,  # N, payload weight
+        'monitoring_weight': 10.79* 9.81,  # N, monitoring weight
 
         # Flight parameters
         'autopilot_weight': 0.5*9.81,  # N, autonomous weight
-        'n_p': 0.6,  # -, propulsive efficiency
-        'LD': 8,  # -, lift to drag ratio
-        'non_cB': 0.2,  # Non cruise energy consumption
+        'n_p': 0.8,  # -, propulsive efficiency
+        'LD': 15,  # -, lift to drag ratio
+        'non_cB': 0.05,  # Non cruise energy consumption
 
         'R': 80000,  # m, flight range
         # Constants
@@ -85,18 +85,18 @@ sizing_data = {
         'b': our_b,  # -, regression constant for small RC Uav
 
         # Other
-        'con': 1.  # -, Contingency for actuating mechanisms, other features
+        'con': 1.05  # -, Contingency for actuating mechanisms, other features
     },
     'MAV': {
         # Payload parameters
-        'payload_weight': .5*9.81,  # N, payload weight
-        'monitoring_weight': 0. * 9.81,  # N, monitoring weight
+        'payload_weight': 2.5*9.81,  # N, payload weight
+        'monitoring_weight': 5 * 9.81,  # N, monitoring weight
 
         # Flight parameters
         'autopilot_weight': 0.5*9.81,  # N, autonomous weight
-        'n_p': 0.7,  # -, propulsive efficiency
-        'LD': 10,  # -, lift to drag ratio
-        'non_cB': 0.3,  # Non cruise energy consumption
+        'n_p': 0.8,  # -, propulsive efficiency
+        'LD': 8.9,  # -, lift to drag ratio
+        'non_cB': 0.05,  # Non cruise energy consumption
 
         'R': 80000,  # m, flight range
         # Constants
@@ -106,11 +106,10 @@ sizing_data = {
         'b': our_b,  # -, regression constant for small RC Uav
 
         # Other
-        'con': 1.  # -, Contingency for actuating mechanisms, other features
+        'con': 1.05  # -, Contingency for actuating mechanisms, other features
     }
 }
-
-
+#
 def test_sizing_verification():
     test_WplW, test_WbW, test_WaW, test_WeW, test_W_TO = sizing(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0, 0.8, -0.9, 1.0, 1.1, verbose=False)
     assert abs(test_WbW - 33.75) < 1
@@ -134,4 +133,5 @@ if __name__ == '__main__':
         print(f'\t---- OUTPUTS ----')
         sizing(**params)
         print(f'====   END {name} sizing  ====')
+
 
