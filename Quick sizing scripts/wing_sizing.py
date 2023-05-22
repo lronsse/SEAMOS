@@ -16,7 +16,7 @@ import ElectricDroneSizing as eds
 
 
 class Configuration:
-    def __init__(self, name, v_stall, v_cruise, cl_max, cd_0, cd_vtol, eta_p, e, ar, h_cruise, h_ceiling, mtom, roc, VTOL, n_prop, h_hop, n_hops, roc_vtol, power_ttc):
+    def __init__(self, name, v_stall, v_cruise, cl_max, cd_0, cd_vtol, eta_p, e, ar, h_cruise, h_ceiling, mtom, roc, VTOL, n_prop, h_hop, n_hops, roc_vtol, power_ttc, maintenance_cost):
         """
         class of aircraft type
 
@@ -71,6 +71,7 @@ class Configuration:
         self.power_consumption_flight_controller = 20
         self.power_consumption_ttc = power_ttc
         self.power_consumption_payload = 35
+        self.maintenance_cost = maintenance_cost
         #self.t_mission = 4 * 3600
         plot_nhops = False
 
@@ -156,13 +157,23 @@ class Configuration:
 
         def operation_cost(n_hops, mission_time):
             fixed_cost = 2500
-            n_workers = 1
+            n_workers = 2
             amount_farms = 40
             days_work = np.ceil(amount_farms / n_hops)
-            salary = 30
+            salary = 80
             supervision_cost = n_workers * (days_work * salary * (mission_time / 3600))
             operation_cost = fixed_cost + supervision_cost
             return operation_cost
+
+        def battery_cost(energy_wh):
+            return energy_wh
+
+        def maintenance_cost(n_hops, airframe_cost):
+            n_flights = np.ceil(80 / n_hops)
+            return n_flights * airframe_cost / 2
+
+
+
 
         self.rho_cruise = calc_isa(h_cruise)[2]
         self.wing_loading_max = wing_loading_stall(v_stall, cl_max)
@@ -223,6 +234,13 @@ class Configuration:
         self.power_required_cruise = self.mtom * g / self.power_loading_design_cruise
         self.battery_mass_vtol = 0
         self.t_mission = self.t_cruise
+
+        self.energy_required_payload = self.power_consumption_payload * self.t_mission / 3600
+        self.energy_required_flight_controller = self.power_consumption_flight_controller * self.t_mission / 3600
+        self.energy_required_cruise = self.power_required_cruise * self.t_cruise / 3600 *1.25
+
+        self.energy_required = self.energy_required_cruise + self.energy_required_payload + self.energy_required_flight_controller
+
         if VTOL:
             self.power_required_vtol = self.mtom * g / self.power_loading_design_vtol
             self.t_hop = self.h_hop / self.roc_vtol
@@ -230,15 +248,16 @@ class Configuration:
             self.energy_required_vtol = self.power_required_vtol * self.t_hops / 3600
             self.battery_mass_vtol = self.energy_required_vtol / energy_density
             self.t_mission += self.t_hops
+            self.energy_required += self.energy_required_vtol
 
-        self.energy_required_cruise = self.power_required_cruise * self.t_cruise / 3600 *1.25
+
 
         self.battery_mass_cruise = self.energy_required_cruise / energy_density
         self.lift_drag_cruise = lift_drag(self.wing_loading_design)
 
-        self.energy_required_payload = self.power_consumption_payload * self.t_mission / 3600
+
         self.battery_mass_payload = self.energy_required_payload / energy_density
-        self.energy_required_flight_controller = self.power_consumption_flight_controller * self.t_mission / 3600
+
         self.battery_mass_flight_controller = self.energy_required_flight_controller / energy_density
 
         self.battery_mass_total = self.battery_mass_vtol + self.battery_mass_cruise + self.battery_mass_flight_controller
@@ -253,7 +272,11 @@ class Configuration:
                 plt.grid()
                 plt.show()
 
+        self.operation_cost = operation_cost(self.n_hops, self.t_mission)
+        self.battery_cost = battery_cost(self.energy_required)
+        #self.maintenance_cost = maintenance_cost(self.n_hops, self.airframe_cost)
 
+        self.total_cost = self.operation_cost + self.maintenance_cost
 
 
 
@@ -265,39 +288,58 @@ energy_density = 200
 
 if __name__ == '__main__':
     #n_hops = np.arange(0, 40, 1)
-    weight = []
+    weight = [[], []]
     hops = []
+    cost = [[], []]
+    W_montailsitter = 0
+    W_monpuffin = 0
+    W_monbibrid = 0
+    mtailsitter = 60  # originial mass estimation
+    m_puffin = 10
+    m_bibrid = 10
+    n_hops_tailsitter = 15
+    n_hops_bibrid = 10
 
-    # determine mtom
-    for i in range(25): #determination of amount of hops
+
+    for i in range(1, 25):
         n_hops = i
         hops.append(i)
-        W_mon = 0
-        mtailsitter = 60 #originial mass estimation
-
         for i in range(100): #converge mtom
-            tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, mtailsitter, 2, True, 1, 15, n_hops, 0.65, 6.5)
-            W_mon = (tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
-            mtailsitter = eds.sizing(0.8, energy_density * 3600, d_flight, tailsitter.lift_drag_cruise, 0.05, g, 8 * 9.81, W_mon, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
-            print(f'mmon = {W_mon / 9.81}')
-            print(f'total battery mass = {tailsitter.battery_mass_total}')
-            print(mtailsitter)
+            tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, mtailsitter, 2, True, 1, 15, n_hops, 0.65, 6.5, 120)
+            W_montailsitter = (tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
+            mtailsitter = eds.sizing(0.8, energy_density * 3600, d_flight, tailsitter.lift_drag_cruise, 0.05, g, 8 * 9.81, W_montailsitter, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            costtailsitter = tailsitter.total_cost
 
-        weight.append(mtailsitter) #append final mtom to
+            puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, m_puffin, 2, False, 1, 0, 1, 2, 6.5, 6000)
+            W_monpuffin = (puffin.battery_mass_payload + puffin.battery_mass_vtol + puffin.battery_mass_flight_controller) * 9.81
+            m_puffin = eds.sizing(0.8, energy_density * 3600, d_flight, puffin.lift_drag_cruise, 0.05, g, 8 * 9.81, W_monpuffin, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            costpuffin = puffin.total_cost
+
+            bibrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.75, 0.8, 0.75, 10, 2000, 5000, m_bibrid, 2, True, 1, 15, n_hops * 2, 0.65, 6.5, 60)
+            W_monbibrid = (bibrid.battery_mass_payload + bibrid.battery_mass_vtol + bibrid.battery_mass_flight_controller) * 9.81
+            m_bibrid = eds.sizing(0.8, energy_density * 3600, d_flight, bibrid.lift_drag_cruise, 0.05, g, 2.5 * 9.81, W_monbibrid, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            cost_bibrid = bibrid.total_cost
+
+        cost[0].append(costtailsitter)
+        cost[1].append(cost_bibrid)
+        weight[0].append(mtailsitter)
+        weight[1].append(m_bibrid)
+
+    print(W_montailsitter / 9.81, W_monbibrid / 9.81)
 
 
-    plt.plot(hops, weight)
-    plt.xlabel('hops')
-    plt.ylabel('mtom')
-    plt.title('hops vs mtom for tailsitter')
-    plt.grid()
+
+    plt.plot(hops, cost[0], label='tail')
+    #plt.plot(hops, cost[1], label='bibrid')
+    plt.legend()
     plt.show()
-    tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, 28, 2, True, 1, 15, 10, 0.65, 6.5)
-    print(tailsitter.battery_mass_total)
-    print(tailsitter.power_required_vtol)
 
 
-    ''' 
+    print(cost, weight)
+
+
+
+    '''
     print(f'power vtol: tailsitter = {tailsitter.power_required_vtol}, puffin = {puffin.power_required_cruise}, Hybrid = {hybrid.power_required_vtol}')
     print(f'battery mass: tailsitter= {tailsitter.battery_mass_vtol} (tot = {tailsitter.battery_mass_cruise + tailsitter.battery_mass_vtol}), puffin = {puffin.battery_mass_cruise}, hybrid = {hybrid.battery_mass_vtol} (tot = {hybrid.battery_mass_cruise + hybrid.battery_mass_vtol})')
     print(f'L/D cruise: tailsitter= {tailsitter.lift_drag_cruise}, puffin = {puffin.lift_drag_cruise}, hybrid = {hybrid.lift_drag_cruise}')
