@@ -48,7 +48,7 @@ sizing_data = {
     'Puffin': {
         # Payload parameters
         'payload_weight': 1.5*9.81,  # N, payload weight
-        'monitoring_weight': 3.6437102010738838*9.81,  # N, monitoring weight
+        'monitoring_weight': 2.67*9.81,  # N, monitoring weight
 
         # Flight parameters
         'autopilot_weight': 0.5*9.81,  # N, autonomous weight
@@ -69,7 +69,7 @@ sizing_data = {
     'MultiSystem': {
         # Payload parameters
         'payload_weight': 8*9.81,  # N, payload weight
-        'monitoring_weight': 10.79* 9.81,  # N, monitoring weight
+        'monitoring_weight': 5.25727 * 9.81,  # N, monitoring weight
 
         # Flight parameters
         'autopilot_weight': 0.5*9.81,  # N, autonomous weight
@@ -90,7 +90,7 @@ sizing_data = {
     'MAV': {
         # Payload parameters
         'payload_weight': 2.5*9.81,  # N, payload weight
-        'monitoring_weight': 5 * 9.81,  # N, monitoring weight
+        'monitoring_weight': 4.599* 9.81,  # N, monitoring weight
 
         # Flight parameters
         'autopilot_weight': 0.5*9.81,  # N, autonomous weight
