@@ -167,6 +167,8 @@ class Configuration:
 
         def battery_cost(energy_wh):
             return energy_wh
+
+
         '''
         def maintenance_cost(n_hops, airframe_cost):
             n_flights = np.ceil(80 / n_hops)
@@ -301,6 +303,7 @@ if __name__ == '__main__':
         t_mission[1].append((hybrid.t_mission + 5 * n_hops) / 60)
 
 
+
     print(W_mon[0])
     print(W_mon[1])
     print(t_mission[0])
@@ -328,7 +331,7 @@ if __name__ == '__main__':
     #print(tailsitter.wing_surface, tailsitter.battery_mass_total)
 
 
-    '''
+
     #n_hops = np.arange(0, 40, 1)
     weight = [[], []]
     hops = []
@@ -346,37 +349,37 @@ if __name__ == '__main__':
     for i in range(1, 25):
         n_hops = i
         hops.append(i)
-    for i in range(100): #converge mtom
-        tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, mtailsitter, 2, True, 1, 15, n_hops, 0.65, 6.5, 120)
-        W_montailsitter = (tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
-        mtailsitter = eds.sizing(0.8, energy_density * 3600, d_flight, tailsitter.lift_drag_cruise, 0.05, g, 8 * 9.81, W_montailsitter, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
-        costtailsitter = tailsitter.total_cost
+        for i in range(100): #converge mtom
+            tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, mtailsitter, 2, True, 1, 15, n_hops, 0.65, 6.5)
+            W_montailsitter = (tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
+            mtailsitter = eds.sizing(0.8, energy_density * 3600, d_flight, tailsitter.lift_drag_cruise, 0.05, g, 8 * 9.81, W_montailsitter, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            costtailsitter = tailsitter.total_cost
 
-        puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, m_puffin, 2, False, 1, 0, 1, 2, 6.5, 6000)
-        W_monpuffin = (puffin.battery_mass_payload + puffin.battery_mass_vtol + puffin.battery_mass_flight_controller) * 9.81
-        m_puffin = eds.sizing(0.8, energy_density * 3600, d_flight, puffin.lift_drag_cruise, 0.05, g, 8 * 9.81, W_monpuffin, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
-        costpuffin = puffin.total_cost
+            puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, m_puffin, 2, False, 1, 0, 1, 2, 6.5)
+            W_monpuffin = (puffin.battery_mass_payload + puffin.battery_mass_vtol + puffin.battery_mass_flight_controller) * 9.81
+            m_puffin = eds.sizing(0.8, energy_density * 3600, d_flight, puffin.lift_drag_cruise, 0.05, g, 8 * 9.81, W_monpuffin, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            costpuffin = puffin.total_cost
 
-        bibrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.75, 0.8, 0.75, 10, 2000, 5000, m_bibrid, 2, True, 1, 15, n_hops * 2, 0.65, 6.5, 60)
-        W_monbibrid = (bibrid.battery_mass_payload + bibrid.battery_mass_vtol + bibrid.battery_mass_flight_controller) * 9.81
-        m_bibrid = eds.sizing(0.8, energy_density * 3600, d_flight, bibrid.lift_drag_cruise, 0.05, g, 2.5 * 9.81, W_monbibrid, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
-        cost_bibrid = bibrid.total_cost
+            bibrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.75, 0.8, 0.75, 10, 2000, 5000, m_bibrid, 2, True, 1, 15, n_hops * 2, 0.65, 6.5)
+            W_monbibrid = (bibrid.battery_mass_payload + bibrid.battery_mass_vtol + bibrid.battery_mass_flight_controller) * 9.81
+            m_bibrid = eds.sizing(0.8, energy_density * 3600, d_flight, bibrid.lift_drag_cruise, 0.05, g, 2.5 * 9.81, W_monbibrid, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            cost_bibrid = bibrid.total_cost
 
-    cost[0].append(costtailsitter)
-    cost[1].append(cost_bibrid)
-    weight[0].append(mtailsitter)
-    weight[1].append(m_bibrid)
+        cost[0].append(costtailsitter)
+        cost[1].append(cost_bibrid)
+        weight[0].append(mtailsitter)
+        weight[1].append(m_bibrid)
 
     print(W_montailsitter / 9.81, W_monbibrid / 9.81)
 
     
 
-    plt.plot(hops, cost[0], label='tail')
-    #plt.plot(hops, cost[1], label='bibrid')
+    plt.plot(hops, weight[0], label='tail')
+    plt.plot(hops, weight[1], label='bibrid')
     plt.legend()
     plt.show()
 
-
+    '''
     print(cost, weight)
 
 
