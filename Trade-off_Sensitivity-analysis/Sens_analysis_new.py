@@ -47,7 +47,7 @@ def generate_latex_table(row_titles, col_titles, values, weights):
     # Begin LaTeX table
     latex_table = "\\begin{table}[H]" + "\n" + "\centering" + "\n" + "\caption{Fill in caption}" + "\n" + \
                   "\label{tab:label}" + "\n" + "\\resizebox{\\textwidth}{!}{\n"
-    latex_table += "\\begin{tabular}{|l|" + ''.join(width) + "p{1.5cm}|}\\\ \hline\n"
+    latex_table += "\\begin{tabular}{|l|" + ''.join(width) + "p{1.5cm}|} \hline\n"
     # Column titles
     latex_table += "Concepts & " + " & ".join(col_titles) + " & \\textbf{Total}" + "\\\ \hline\n"
     weights = [str(weights[i]) for i in range(len(weights))]
@@ -115,10 +115,6 @@ def sens(grades, w):
     return [res_1, res_2, res_3]
 
 
-def plot_full():
-    return ""
-
-
 # ---- Criteria ----
 criteria = ['Power', 'Cost', 'Reliability', 'Market']
 weights = [30, 30, 25, 15]
@@ -126,25 +122,35 @@ systems = ['Puffin', 'Hybrid', 'Multi-system']
 grades = [[3.33, 2, 3, 3.5], [2, 2.77, 3, 3.5], [3.01, 2.25, 2.78, 3.5]]
 
 # ---- Sub-Criteria ----
-power_w = [25, 10, 40, 25]
-power_v = [[2.79, 2.23, 2.00, 1], [2.19, 4.03, 2.02, 4], [2.00, 2.00, 2.16, 3]]  # puffin, hybrid, multi-system
+power_w = [50, 50]
+power_tit = ['Navigation', 'Monitoring']
+power_v = [[3.81, 2.84], [2.00, 2.00], [3.3, 2.71]]  # puffin, hybrid, multi-system
 cost_w = [25, 10, 40, 25]
-cost_v = [[2.79, 2.23, 2.00, 1], [2.19, 4.03, 2.02, 4], [2.00, 2.00, 2.16, 3]]  # puffin, hybrid, multi-system
-reliability_w = [25, 10, 40, 25]
-reliability_v = [[2.79, 2.23, 2.00, 1], [2.19, 4.03, 2.02, 4], [2.00, 2.00, 2.16, 3]]  # puffin, hybrid, multi-system
-market_w = [25, 10, 40, 25]
-market_v = [[2.79, 2.23, 2.00, 1], [2.19, 4.03, 2.02, 4], [2.00, 2.00, 2.16, 3]]  # puffin, hybrid, multi-system\
+cost_tit = ['System', 'Maintenance', 'Operation', 'R\&D']
+cost_v = [[2.79, 2.23, 2.08, 1], [2.19, 4.03, 2.04, 4], [2.00, 2.00, 2.00, 3]]  # puffin, hybrid, multi-system
+reliability_w = [33, 44, 22]
+reliability_tit = ['Wave Stability', 'mechanisms', 'Reliability']
+reliability_v = [[5, 2, 2], [3, 3, 3], [3, 2, 2]]  # puffin, hybrid, multi-system
+market_w = [50, 50]
+market_tit = ['Time to market', 'Added value']
+market_v = [[2, 5], [4, 3], [3, 4]]  # puffin, hybrid, multi-system\
 
 tab = generate_latex_table(systems, criteria, grades, weights)  # generate latex code for table
+power_tab = generate_latex_table(systems, power_tit, power_v, power_w)
+cost_tab = generate_latex_table(systems, cost_tit, cost_v, cost_w)
+reliability_tab = generate_latex_table(systems, reliability_tit, reliability_v, reliability_w)
+market_tab = generate_latex_table(systems, market_tit, market_v, market_w)
 
+#print(tab, '\n', cost_tab, '\n', power_tab, '\n', reliability_tab, '\n', market_tab)
 results = sens(grades, weights)  # generate results of sensitivity analysis
 sub_results = sub_sens(grades, weights, 1, cost_w, 3, cost_v)
 
 # ---- Plotting ----
 colors = ['tab:red', 'tab:orange', 'tab:green', 'tab:blue', 'tab:purple']
+fig = plt.figure()
 
 for i in range(len(criteria)):
-    fig = plt.figure()
+    plt.subplot(2, 2, i + 1)
     for j in range(3):
         values = results[j][i]
         values.reverse()
@@ -161,7 +167,8 @@ for i in range(len(criteria)):
     plt.ylabel(ylabel='Final value [-]')
     plt.legend()
     plt.grid()
-    plt.savefig(f'{criteria[i]}_diagram.png', dpi=360)
+plt.show()
+#plt.savefig(f'subplot_diagram.png', dpi=550)
 '''
 print(sub_results)
 for i in range(len(sub_results)):
