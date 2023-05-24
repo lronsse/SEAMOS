@@ -139,7 +139,9 @@ if __name__ == '__main__':
         m_monitor_arr = data[2]
 
         n_arr = []
-        C_
+        C_sys_arr = []
+        C_ops_arr = []
+        C_tot_arr = []
         for i in enumerate(t_mission_arr):
             n_units = i[0]+1
             t_mission = i[1]
@@ -148,8 +150,8 @@ if __name__ == '__main__':
             WplW, WbW, WaW, WeW, W_TO = sizing(**template)
 
             C_sys = ...
-            C_var = ...
             C_ops = ...
+            C_tot = C_sys+C_ops
 
 
 
