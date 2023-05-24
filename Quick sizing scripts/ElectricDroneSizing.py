@@ -2,6 +2,8 @@
 Adapted from Soham's implementation
 """
 import scipy.optimize as optimise
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, monitoring_weight, autopilot_weight, a, b, con, verbose=True):
@@ -138,11 +140,31 @@ def system_cost(name, m_batt, W_TO):
         PW = 0.4
     else:
         PW = 0.1
-    C_prop = PW*W_TO*100 #TODO: MATHIS FILL
+    C_prop = PW*W_TO*0.0426+209.15
 
     C_batt = 200*m_batt
 
-    return(C_prop + C_batt + C_fix)
+    return C_prop + C_batt + C_fix
+
+def ops_cost(t_mission, n_units):
+    t_mission /= 60  # convert to hours
+    CpH = 80  # Eur per hour
+    t_add_day = 2  # addtl. hours per day
+    t_overhead_day = 5  # charged per day
+    T_workday = 10  # length of a workday
+
+    n_missions = (40/n_units)
+    max_missions_day = (T_workday-t_add_day)/t_mission
+
+    # print(max_missions_day, t_mission)
+    n_days = n_missions/max_missions_day
+
+    t_tot_month = n_days*(t_add_day+t_overhead_day)+t_mission*n_missions
+    t_tot_year = t_tot_month*12
+
+    print(t_tot_month)
+    return(t_tot_year*CpH)
+
 
 if __name__ == '__main__':
     data = {
@@ -165,12 +187,28 @@ if __name__ == '__main__':
             t_mission = i[1]
             m_monitor = m_monitor_arr[i[0]]
             template['monitoring_weight'] = m_monitor*9.81
-            WplW, WbW, WaW, WeW, W_TO = sizing(**template)
+            WplW, WbW, WaW, WeW, W_TO = sizing(**template, verbose=False)
 
             m_bat = WbW*W_TO/9.81
             C_sys = system_cost(name, m_bat, W_TO)
-            C_ops = ...  # per YEAR!
+            C_ops = ops_cost(t_mission, n_units)
             C_tot = C_sys+C_ops
+
+            C_sys_arr.append(C_sys)
+            C_ops_arr.append(C_ops)
+            C_tot_arr.append(C_tot)
+            n_arr.append(n_units)
+
+        plt.plot(n_arr, C_sys_arr, label='System Cost', color='')
+        plt.plot(n_arr, C_ops_arr, label='Operational Cost', color='blue')
+        plt.plot(n_arr, C_tot_arr, label='Total Cost', color='red')
+        C_min = min(C_tot_arr)
+        n_opt = C_tot_arr.index(C_min) + 1
+        plt.axhline(C_min, color='black', alpha=0.4, label='Min. Total Cost')
+        plt.axvline(n_opt, color='black', alpha=0.4, label='Opt. n Units')
+        plt.title(name)
+        plt.legend()
+        plt.show()
 
 
 
