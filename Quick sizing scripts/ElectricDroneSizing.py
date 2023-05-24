@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
             m_bat = WbW*W_TO/9.81
             C_sys = system_cost(name, m_bat, W_TO)
-            C_ops = ...
+            C_ops = ...  # per YEAR!
             C_tot = C_sys+C_ops
 
 
