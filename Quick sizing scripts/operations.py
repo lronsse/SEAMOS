@@ -19,7 +19,7 @@ def operations_per_mission(n_units, time_per_unit, cruise_speed, turnaround_time
 
 
 cruise_dist = 40000  # [m]
-n_units_per_mission = 5
+n_units_per_mission = 4
 
 
 operations_per_mission(n_units=n_units_per_mission,
