@@ -288,51 +288,7 @@ g = 9.81
 d_flight = 80000
 energy_density = 200
 
-if __name__ == '__main__':
-
-    W_mon = [[], []]
-    t_mission = [[], []]
-    hops = []
-    for n_hops in range(1, 41):
-        hops.append(n_hops)
-        tailsitter = Configuration('Multisystem', 12, 20, 1.4, 0.02, 0.5, 0.8, 0.8, 10, 4000, 6000, 32.01, 0.5, True, 1, n_hops, 15, 1, 6.5)
-        hybrid = Configuration('Hybrid System', 12, 20, 1.4, 0.04, 0.75, 0.8, 0.8, 10, 4000, 6000, 22.28, 0.5, True, 1, 2 * n_hops, 20, 1, 6.5)
-        W_mon[0].append(tailsitter.battery_mass_vtol)
-        W_mon[1].append(hybrid.battery_mass_vtol)
-        t_mission[0].append((tailsitter.t_mission + 200 * n_hops) / 60)
-        t_mission[1].append((hybrid.t_mission + 5 * n_hops) / 60)
-
-
-
-    print(W_mon[0])
-    print(W_mon[1])
-    print(t_mission[0])
-    print(t_mission[1])
-
-    plt.plot(hops, t_mission[0], label='multisystem')
-    plt.plot(hops, t_mission[1], label='hybrid')
-    plt.grid()
-    plt.legend()
-    plt.ylabel('t mission')
-    plt.xlabel('n farms')
-    plt.show()
-
-    plt.plot(hops, W_mon[0], label='multisystem')
-    plt.plot(hops, W_mon[1], label='hybrid')
-    plt.grid()
-    plt.legend()
-    plt.xlabel('n farms')
-    plt.ylabel('w mon')
-    plt.show()
-
-    puffin = Configuration('Puffin', 12, 20, 1.4, 0.03, 0, 0.8, 0.8, 12, 4000, 6000, 15.28, 0.5, False, 1, 0, 20, 0, 6.5)
-
-    #print(hybrid.wing_surface, hybrid.battery_mass_total)
-    #print(tailsitter.wing_surface, tailsitter.battery_mass_total)
-
-
-
-    #n_hops = np.arange(0, 40, 1)
+def weight_jan():
     weight = [[], []]
     hops = []
     cost = [[], []]
@@ -345,24 +301,35 @@ if __name__ == '__main__':
     n_hops_tailsitter = 15
     n_hops_bibrid = 10
 
-
-    for i in range(1, 25):
+    for i in range(1, 41):
         n_hops = i
         hops.append(i)
-        for i in range(100): #converge mtom
-            tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, mtailsitter, 2, True, 1, 15, n_hops, 0.65, 6.5)
-            W_montailsitter = (tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
-            mtailsitter = eds.sizing(0.8, energy_density * 3600, d_flight, tailsitter.lift_drag_cruise, 0.05, g, 8 * 9.81, W_montailsitter, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+        for i in range(100):  # converge mtom
+            tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, mtailsitter, 2,
+                                       True, 1, 15, n_hops, 0.65, 6.5)
+            W_montailsitter = (
+                                          tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
+            mtailsitter = \
+            eds.sizing(0.8, energy_density * 3600, d_flight, tailsitter.lift_drag_cruise, 0.05, g, 8 * 9.81,
+                       W_montailsitter, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
             costtailsitter = tailsitter.total_cost
 
-            puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, m_puffin, 2, False, 1, 0, 1, 2, 6.5)
-            W_monpuffin = (puffin.battery_mass_payload + puffin.battery_mass_vtol + puffin.battery_mass_flight_controller) * 9.81
-            m_puffin = eds.sizing(0.8, energy_density * 3600, d_flight, puffin.lift_drag_cruise, 0.05, g, 8 * 9.81, W_monpuffin, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            puffin = Configuration('Puffin', 15, 30, 1.4, 0.02, 0, 0.8, 0.75, 10, 2000, 5000, m_puffin, 2, False, 1, 0,
+                                   1, 2, 6.5)
+            W_monpuffin = (
+                                      puffin.battery_mass_payload + puffin.battery_mass_vtol + puffin.battery_mass_flight_controller) * 9.81
+            m_puffin = \
+            eds.sizing(0.8, energy_density * 3600, d_flight, puffin.lift_drag_cruise, 0.05, g, 8 * 9.81, W_monpuffin,
+                       0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
             costpuffin = puffin.total_cost
 
-            bibrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.75, 0.8, 0.75, 10, 2000, 5000, m_bibrid, 2, True, 1, 15, n_hops * 2, 0.65, 6.5)
-            W_monbibrid = (bibrid.battery_mass_payload + bibrid.battery_mass_vtol + bibrid.battery_mass_flight_controller) * 9.81
-            m_bibrid = eds.sizing(0.8, energy_density * 3600, d_flight, bibrid.lift_drag_cruise, 0.05, g, 2.5 * 9.81, W_monbibrid, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
+            bibrid = Configuration('Hybrid', 15, 30, 1.4, 0.04, 0.75, 0.8, 0.75, 10, 2000, 5000, m_bibrid, 2, True, 1,
+                                   15, n_hops * 2, 0.65, 6.5)
+            W_monbibrid = (
+                                      bibrid.battery_mass_payload + bibrid.battery_mass_vtol + bibrid.battery_mass_flight_controller) * 9.81
+            m_bibrid = \
+            eds.sizing(0.8, energy_density * 3600, d_flight, bibrid.lift_drag_cruise, 0.05, g, 2.5 * 9.81, W_monbibrid,
+                       0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
             cost_bibrid = bibrid.total_cost
 
         cost[0].append(costtailsitter)
@@ -370,26 +337,38 @@ if __name__ == '__main__':
         weight[0].append(mtailsitter)
         weight[1].append(m_bibrid)
 
-    print(W_montailsitter / 9.81, W_monbibrid / 9.81)
-
-    
+    #print(W_montailsitter / 9.81, W_monbibrid / 9.81)
 
     plt.plot(hops, weight[0], label='tail')
     plt.plot(hops, weight[1], label='bibrid')
     plt.legend()
     plt.show()
 
+    return weight
+if __name__ == '__main__':
+
+    hybrid = Configuration('hybrid', 12, 20, 1.4, 0.03, 0.5, 0.8, 0.8, 10, 4000, 6000, 22.28, 0.5, True, 1, 15, 20, 1, 6.5)
+    puffin = Configuration('puffin', 12, 20, 1.4, 0.02, 0.5, 0.8, 0.8, 10, 4000, 6000, 15.28, 0.5, False, 1, 15, 20, 1, 6.5)
+    multi = Configuration('multi', 12, 20, 1.4, 0.04, 0.5, 0.8, 0.8, 10, 4000, 6000, 33.01, 0.5, True, 1, 15, 10, 1, 6.5)
+
+    print(hybrid.t_mission)
+    print(hybrid.wing_surface, puffin.wing_surface, multi.wing_surface)
     '''
+    #print(hybrid.wing_surface, hybrid.battery_mass_total)
+    #print(tailsitter.wing_surface, tailsitter.battery_mass_total)
+
+
+
+    #n_hops = np.arange(0, 40, 1)
+
+
+    
     print(cost, weight)
 
 
 
     
-    print(f'power vtol: tailsitter = {tailsitter.power_required_vtol}, puffin = {puffin.power_required_cruise}, Hybrid = {hybrid.power_required_vtol}')
-    print(f'battery mass: tailsitter= {tailsitter.battery_mass_vtol} (tot = {tailsitter.battery_mass_cruise + tailsitter.battery_mass_vtol}), puffin = {puffin.battery_mass_cruise}, hybrid = {hybrid.battery_mass_vtol} (tot = {hybrid.battery_mass_cruise + hybrid.battery_mass_vtol})')
-    print(f'L/D cruise: tailsitter= {tailsitter.lift_drag_cruise}, puffin = {puffin.lift_drag_cruise}, hybrid = {hybrid.lift_drag_cruise}')
-    print(f'wing sizing: tailsiiter = {tailsitter.wing_surface}, puffin = {puffin.wing_surface}, hybrid = {hybrid.wing_surface}')
-    #print(tailsitter.wing_surface, tailsitter.battery_mass_cruise, tailsitter.battery_mass_vtol, tailsitter.wing_loading_max)
+      #print(tailsitter.wing_surface, tailsitter.battery_mass_cruise, tailsitter.battery_mass_vtol, tailsitter.wing_loading_max)
     #print(puffin.wing_surface, puffin.battery_mass_cruise, puffin.lift_drag_cruise)
     #print('test')
     '''
