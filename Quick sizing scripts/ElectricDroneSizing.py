@@ -44,6 +44,7 @@ def sizing(n_p, E_d, R, LD, non_cB, g, payload_weight, monitoring_weight, autopi
 our_a = -0.0013636
 our_b = 0.545
 
+
 sizing_data = {
     'Puffin': {
         # Payload parameters
