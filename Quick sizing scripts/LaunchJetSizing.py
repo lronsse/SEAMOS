@@ -44,9 +44,8 @@ if plot_t:
 
     I_tot = sum(Ftarr) * dt
     print('total impulse:', I_tot, '[Ns]')
-    m_test = 20.
+    m_test = 15.
     print(f'dV for {m_test}kg: {I_tot / m_test} m/s')
-
 
     plt.plot(tarr, parr)
     plt.show()
@@ -92,6 +91,9 @@ if plot_imp:
         plt.plot(prarr, Iarr, label=f'{V_c*1000} L', linestyle=style[i])
         i += 1
 
+    m_test = 15.
+    v_TO = 15.
+    plt.axhline(m_test*v_TO, color='black', label='Launch Impulse Requirement', alpha=0.4)
     plt.legend()
     plt.xscale('log')
     plt.ylabel('Delivered Impulse [Ns]')

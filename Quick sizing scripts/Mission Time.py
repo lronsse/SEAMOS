@@ -17,7 +17,7 @@ print(Hyb_t_BZW, 'min :time it takes to fly from shore to BWZ')
 # On/In water distance
 current = 0.65  # m/s
 wind_surface = 5.9  # m/s
-nr_unit = 10
+nr_unit = 15
 SF = 1.6  # Safety_Factor
 
 # On/In water distance Puffin
