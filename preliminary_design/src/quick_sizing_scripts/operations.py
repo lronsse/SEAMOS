@@ -1,4 +1,4 @@
-from Weather import weather_availability
+from weather import weather_availability
 
 import numpy as np
 
