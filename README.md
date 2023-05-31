@@ -1,4 +1,4 @@
-[![Python Checks](https://github.com/Ironsse/SEAMOS/actions/workflows/lint-pytest.yml/badge.svg)](https://github.com/Ironsse/SEAMOS/actions/workflows/lint-pytest.yml)
+[![Pylint](https://github.com/lronsse/SEAMOS/actions/workflows/lint-pytest.yml/badge.svg)](https://github.com/lronsse/SEAMOS/actions/workflows/lint-pytest.yml)
 
 # SEAMOS
 Github repository for the DSE Seamos group
