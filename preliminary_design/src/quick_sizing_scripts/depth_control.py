@@ -17,7 +17,7 @@ mission_t=1.5 #[h]
 Ed=200 # [Wh/kg]
 sys_m = 16 #[kg] System mass
 a=0.03 #[m/s^2] depth acceleration
-V=20/1000 #submerged volume
+V=16/1000 #submerged volume
 
 x_cg = np.cbrt(V) / 2 #[m]
 
@@ -47,7 +47,7 @@ def ballast_volume_req(m, a, rho, V):
     adown = a
     empty_V = (m * g - m * aup) / (rho * g)
     full_V =  (m * g - m * adown) / (rho * g)
-    tank_size = V - full_V
+    tank_size = max(np.abs(V - full_V), np.abs(V-empty_V))
     return empty_V * 1000, full_V * 1000, tank_size * 1000
 
 
