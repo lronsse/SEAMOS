@@ -65,7 +65,7 @@ class Configuration:
         self.n_hops = n_hops
         self.roc_vtol = roc_vtol
         self.plot = True
-        optimisation = True
+        optimisation = False
         if optimisation:
             self.plot = False
         self.power_consumption_flight_controller = 20
@@ -149,6 +149,7 @@ class Configuration:
                 vi = (-self.roc_vtol / (2 * vh) + np.sqrt((self.roc_vtol / (2 * vh)) ** 2 + 1)) * vh
                 pwreq = 1 / (treq * vi / (fm * self.mtom * g))
                 return pwreq
+
 
         def lift_drag(ws):
             tw = 0.5 * self.rho_cruise * v_cruise ** 2 * cd_0 / ws + self.k * ws / (0.5 * self.rho_cruise * v_cruise ** 2)
@@ -347,12 +348,11 @@ def weight_jan():
     return weight
 if __name__ == '__main__':
 
-    hybrid = Configuration('hybrid', 12, 20, 1.4, 0.03, 0.5, 0.8, 0.8, 10, 4000, 6000, 22.28, 0.5, True, 1, 15, 20, 1, 6.5)
-    puffin = Configuration('puffin', 12, 20, 1.4, 0.02, 0.5, 0.8, 0.8, 10, 4000, 6000, 15.28, 0.5, False, 1, 15, 20, 1, 6.5)
-    multi = Configuration('multi', 12, 20, 1.4, 0.04, 0.5, 0.8, 0.8, 10, 4000, 6000, 33.01, 0.5, True, 1, 15, 10, 1, 6.5)
+    #hybrid = Configuration('hybrid', 12, 20, 1.4, 0.03, 0.5, 0.8, 0.8, 10, 4000, 6000, 22.28, 0.5, True, 1, 15, 20, 1, 6.5)
+    puffin = Configuration('puffin', 12, 20, 1.4, 0.03, 0.5, 0.8, 0.8, 10, 4000, 6000, 15.28, 0.5, False, 1, 15, 20, 1, 6.5)
+    #multi = Configuration('multi', 12, 20, 1.4, 0.04, 0.5, 0.8, 0.8, 10, 4000, 6000, 33.01, 0.5, True, 1, 15, 10, 1, 6.5)
 
-    print(hybrid.t_mission)
-    print(hybrid.wing_surface, puffin.wing_surface, multi.wing_surface)
+    print(puffin.power_required_cruise, (1 / puffin.lift_drag_cruise) * puffin.mtom * g)
     '''
     #print(hybrid.wing_surface, hybrid.battery_mass_total)
     #print(tailsitter.wing_surface, tailsitter.battery_mass_total)
