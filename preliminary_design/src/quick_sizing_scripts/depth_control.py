@@ -55,6 +55,7 @@ print(thruster_battery_mass(thrust_req(sys_m,a,rho,V),thruster_thrust,mission_t,
 
 # propeller water take off
 
+
 def ballast_volume_req(m, a, rho, V):
     aup = - a
     adown = a
