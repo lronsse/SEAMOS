@@ -116,7 +116,7 @@ def sens(grades, w):
 
 
 # ---- Criteria ----
-criteria = ['Power', 'Cost', 'Reliability', 'Market']
+criteria = ['Energy', 'Cost', 'Reliability', 'Market']
 weights = [30, 30, 25, 15]
 systems = ['Puffin', 'Hybrid', 'Multi-system']
 grades = [[3.33, 2, 3, 3.5], [2, 2.77, 3, 3.5], [3.01, 2.25, 2.78, 3.5]]
@@ -150,7 +150,6 @@ colors = ['tab:red', 'tab:orange', 'tab:green', 'tab:blue', 'tab:purple']
 fig = plt.figure()
 
 for i in range(len(criteria)):
-    plt.subplot(2, 2, i + 1)
     for j in range(3):
         values = results[j][i]
         values.reverse()
@@ -167,8 +166,8 @@ for i in range(len(criteria)):
     plt.ylabel(ylabel='Final value [-]')
     plt.legend()
     plt.grid()
-plt.show()
-#plt.savefig(f'subplot_diagram.png', dpi=550)
+#plt.show()
+    plt.savefig(f'{criteria[i]}.png', dpi=550)
 '''
 print(sub_results)
 for i in range(len(sub_results)):
