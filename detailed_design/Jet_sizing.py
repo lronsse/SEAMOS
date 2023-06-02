@@ -33,13 +33,14 @@ h = [min_depth]
 t = [0]
 dt = 1
 i = 0
-while h[i] <= 5:  # maneuver up to 5m in height
-    if h[i] <= jet_depth:
-        a = (buoyancy_thrust - drag(Cd, V[i], diameter_uav, length_uav)) / mass_uav
-        dV = a * dt
-    V.append(V[i] + dV)
-    h.append(h[i] + V[i+1] * dt)
-    t.append(t[i] + dt)
-    i += 1
-    print(h[i])
+if __name__ == '__main__':
+    while h[i] <= 5:  # maneuver up to 5m in height
+        if h[i] <= jet_depth:
+            a = (buoyancy_thrust - drag(Cd, V[i], diameter_uav, length_uav)) / mass_uav
+            dV = a * dt
+        V.append(V[i] + dV)
+        h.append(h[i] + V[i+1] * dt)
+        t.append(t[i] + dt)
+        i += 1
+        print(h[i])
 
