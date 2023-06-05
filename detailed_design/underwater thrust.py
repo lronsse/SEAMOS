@@ -56,10 +56,14 @@ def thrust_coef():
     v
     return
 
+def rpm_from_prop():
+    
+
 # now using: Q = 0.19, rpm = 16,000
 
 T_req = thrust_required(Cd, V_flow, 0.5)
 P_req = power_required(Cd, V_flow, 0.5)
+
 rpm_req = rpm_from_thrust(T_req, V_flow, 2.39, 0.7 )
 T_del = thrust_from_motor(0.7, 0.7, 220, 4.29, V_flow)
 P_i = eta_total(T_req, V_flow, 24, 5.1) * P_req
@@ -71,7 +75,8 @@ print('thrust required:', T_req)
 print('Power required:', P_req)
 print('thrust delivered:', T_del)
 print('input power required:', P_i)
+
 print('propeller efficiency:', e_p)
-print()
+print(P_req / e_p)
 
 
