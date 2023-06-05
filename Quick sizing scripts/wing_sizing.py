@@ -308,8 +308,7 @@ def weight_jan():
         for i in range(100):  # converge mtom
             tailsitter = Configuration('Tailsitter', 15, 30, 1.4, 0.02, 0.5, 0.8, 0.75, 10, 2000, 5000, mtailsitter, 2,
                                        True, 1, 15, n_hops, 0.65, 6.5)
-            W_montailsitter = (
-                                          tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
+            W_montailsitter = (tailsitter.battery_mass_payload + tailsitter.battery_mass_vtol + tailsitter.battery_mass_flight_controller) * 9.81
             mtailsitter = \
             eds.sizing(0.8, energy_density * 3600, d_flight, tailsitter.lift_drag_cruise, 0.05, g, 8 * 9.81,
                        W_montailsitter, 0.5 * 9.81, eds.our_a, eds.our_b, 1, False)[4] / 9.81
@@ -349,9 +348,9 @@ def weight_jan():
 if __name__ == '__main__':
 
     #hybrid = Configuration('hybrid', 12, 20, 1.4, 0.03, 0.5, 0.8, 0.8, 10, 4000, 6000, 22.28, 0.5, True, 1, 15, 20, 1, 6.5)
-    puffin = Configuration('puffin', 12, 20, 1.4, 0.03, 0.5, 0.8, 0.8, 10, 4000, 6000, 15.28, 0.5, False, 1, 15, 20, 1, 6.5)
+    puffin = Configuration('puffin', 12, 20, 1.4, 0.02, 0.5, 0.8, 0.8, 10, 4000, 6000, 15.28, 0.5, False, 1, 15, 20, 1, 6.5)
     #multi = Configuration('multi', 12, 20, 1.4, 0.04, 0.5, 0.8, 0.8, 10, 4000, 6000, 33.01, 0.5, True, 1, 15, 10, 1, 6.5)
-
+    print(puffin.energy_required_cruise)
     print(puffin.power_required_cruise, (1 / puffin.lift_drag_cruise) * puffin.mtom * g)
     '''
     #print(hybrid.wing_surface, hybrid.battery_mass_total)
