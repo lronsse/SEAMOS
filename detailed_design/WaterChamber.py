@@ -93,7 +93,8 @@ class WaterChamber:
                 chamber_volume_plot = volume_factor*chamber_volume
                 dv_list.append(self.dV_from_PV(chamber_pressure, chamber_volume_plot))
             plt.plot(self.pressure_plot_range/1e5, dv_list,
-                     label=f'isochoric, V =  {chamber_volume_plot*1E3} L', color=line_colors[plot_counter])
+                     label=f'isochoric, V =  {chamber_volume_plot*1E3} L',
+                     color=line_colors[plot_counter], linestyle='--')
 
     def show(self, title=''):
         plt.title(title)
@@ -103,14 +104,24 @@ class WaterChamber:
         plt.show()
 
 if __name__ == '__main__':
-    main = WaterChamberSizing(volume_reservoir=.5/1000, pressure_reservoir=25E5)
-    main.plot_isentropic([1, 2, 3])
-    main.plot_isochoric(5E-3)
-    main.show()
+    PB = WaterChamber(volume_reservoir=1.5/1000, pressure_reservoir=320E5)
+    PB.plot_isentropic([1, 4, 8, 16])
+    PB.plot_isochoric(5E-3)
+    PB.show('Paintball Tank')
 
-    main.plot_isoenthalpic([.5, 1, 2])
-    main.plot_isochoric(5E-3)
-    main.show()
+    # PB.plot_isoenthalpic([.5, 1, 2])
+    # PB.plot_isochoric(5E-3)
+    # PB.show('Paintball Tank')
+
+    CC = WaterChamber(volume_reservoir=.5/1000, pressure_reservoir=25E5)
+    PB.plot_isentropic([1, 1, 1])
+    PB.plot_isochoric(5E-3)
+    PB.show('Combustion')
+
+    # PB.plot_isoenthalpic([.5, 1, 2])
+    # PB.plot_isochoric(5E-3)
+    # PB.show('Combustion')
+
 
 
 
