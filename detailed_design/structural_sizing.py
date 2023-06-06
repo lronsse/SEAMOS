@@ -16,6 +16,7 @@ Inputs: Geometry: - Wing (planform + airfoil)
 
 Outputs: - Stresses due to all loads
          - Design requirements needed for bearing with loads
+         - Deflections (if wanted, let Mathis know)
 """
 
 import numpy as np
@@ -23,7 +24,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad
 
 g = 9.81
-
+n_points = 1000
 
 class Material:
     def __init__(self, rho, sig_yld, sig_ult, E, G, nu):
@@ -79,8 +80,6 @@ class Wing:
         :param spar_front: The percentage of the cord where the front spar is
         :type spar_front: float
         """
-
-
         self.b = b
         self.cr = cr
         self.ct = ct
@@ -88,6 +87,7 @@ class Wing:
         self.spar_rear = spar_rear
         self.spar_front = spar_front
         self.spar_dif = spar_rear - spar_front
+        self.mass = 1
 
     def area(self):
         """
@@ -109,7 +109,7 @@ class Wing:
         """
         return self.cr - 2 * y * (self.cr - self.ct) / self.b
 
-    def naca4(self, number, chord_length=1, n=1000, plot=False):
+    def naca4(self, number, chord_length=1, n=n_points, plot=False):
         # NACA 4 digit airfoil generator
         m = int(number[0]) / 100.0
         p = int(number[1]) / 10.0
@@ -142,39 +142,40 @@ class Wing:
 
         return xu, yu, xl, yl, max_thickness, chord_length
 
+    def moment_of_inertia(self, chord_length):
+        points = self.naca4('2412', chord_length, n_points, False)
+        I_x = np.sum(self.mass / n_points * points[1] ** 2) + np.sum(self.mass / n_points * points[3] ** 2)
+        I_y = np.sum(self.mass / n_points * points[0] ** 2) + np.sum(self.mass / n_points * points[2] ** 2)
+        return I_x, I_y
+
+
+
     def calculate_internal_loads(self, mass_plane_nowings, mass_wings, plot):
         # Input parameters
-        L = self.b / 2  # Length of the beam
-        P1 = - mass_plane_nowings * g  # First point load (weight of plane at root of wing)
-        a1 = 0.01  # Location of the first point load
-        P2 = - mass_wings * g  # Second point load (weight of wing)  # todo: find weight of wing
-        a2 = L / 2  # Location of the second point load (cg location of wing)  # todo: find more accurate cg location of wing
+        # Length of the beam
+        L = self.b / 2
 
-        # Distributed load as a function of x (lift distribution)
+        # List of point loads (position, magnitude)
+        point_loads = [(0.0, mass_plane_nowings * g), (L / 2, mass_wings * g)]  # downwards positive
+
+        # Non-uniform load as a function of x
         def w(x):
-            return 50 * x  # todo: find lift distribution
+            return -5
 
-        # Calculate reactions
-        R1 = (P1 * (L - a1) + P2 * (L - a2) + quad(lambda x: x * w(x), 0, L)[0]) / L
-        R2 = P1 + P2 + quad(w, 0, L)[0] - R1
+        # Positions along the beam
+        x = np.linspace(0, L, n_points)
 
-        # Create arrays for the beam
-        x = np.linspace(0, L, 500)
         V = np.zeros_like(x)
         M = np.zeros_like(x)
 
-        # Calculate shear force and bending moment
-        for i, xi in enumerate(x):
-            if xi < a1:
-                V[i] = R1 - quad(w, 0, xi)[0]
-                M[i] = R1 * xi - quad(lambda x: x * w(x), 0, xi)[0]
-            elif xi < a2:
-                V[i] = R1 - quad(w, 0, xi)[0] - P1
-                M[i] = R1 * xi - quad(lambda x: x * w(x), 0, xi)[0] - P1 * (xi - a1)
-            else:
-                V[i] = R1 - quad(w, 0, xi)[0] - P1 - P2
-                M[i] = R1 * xi - quad(lambda x: x * w(x), 0, xi)[0] - P1 * (xi - a1) - P2 * (xi - a2)
+        # Calculate shear force and bending moment due to point loads
+        for pos, mag in point_loads:
+            V -= np.where(x < pos, mag, 0)
+            M -= np.where(x < pos, mag * (pos - x), 0)  # Change the sign here
 
+        # Add shear force and bending moment due to distributed load
+        V -= w(x) * (L - x)
+        M += np.array([quad(lambda xi: w(xi) * (L - xi), xi, L)[0] for xi in x])
         if plot:
             plt.figure(figsize=(12, 6))
 
@@ -194,6 +195,8 @@ class Wing:
 
             plt.tight_layout()
             plt.show()
+        return V, M
+
 
 
 class Fuselage:
@@ -233,5 +236,6 @@ class Fuselage:
 
 
 wing = Wing(5, 1.3, 1, 0, 0.25, 0.75)
-
-wing.calculate_internal_loads(16, 5, True)
+wing.moment_of_inertia(1)
+wing.naca4('2412', plot=False)
+wing.calculate_internal_loads(16, 5, False)
