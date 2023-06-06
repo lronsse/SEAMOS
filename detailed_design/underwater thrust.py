@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -14,9 +13,7 @@ ozin_to_Nm = 0.0070615 # convert random internet unit
 Q = 180 * ozin_to_Nm # the conversion
 m = 16 # [ kg ] estimated mass of the drone
 accel = 0.1 # acceleration required to reach speed of 1 [ m/s ] in 10 seconds
-diam = np.linspace(0.05, 0.4, 100)
-
-print(Re)
+diam = 0.2 #np.linspace(0.05, 0.4, 100)
 
 def thrust_required(Cd, V, D):
     rho = 1023
@@ -107,14 +104,20 @@ print('applied torque:', find_torque(10, 5, T_req , diam))
 print('driving power:', driving_pwr(T_req , diam))
 
 plt.plot(diam, rpm_from_prop(V_flow, diam, 10,  5 ) * 60 / ( 2 * np.pi))
-plt.title('rpm vs diameter')
-plt.show()
+plt.title('Rotations per minute vs. Propeller diameter')
+plt.xlabel('Propeller diameter [m]')
+plt.ylabel('Angular speed [rpm]')
+#plt.show()
 plt.plot(diam,find_torque(10, 5, T_req , diam) )
-plt.title('shaft torque vs diam')
-plt.show()
+plt.title('Shaft torque vs. Propeller diameter')
+plt.xlabel('Propeller diameter [m]')
+plt.ylabel('Shaft torque [Nm] ')
+#plt.show()
 plt.plot(diam, driving_pwr(T_req , diam) )
-plt.title('driving power vs diameter')
-plt.show()
+plt.title('Propeller driving power vs. Propeller diameter')
+plt.xlabel('Propeller diameter [m]')
+plt.ylabel('Propeller driving power required [W]')
+#plt.show()
 
 print('torque:', torque_from_rpm(800, 0.0877, 0.2))
 
