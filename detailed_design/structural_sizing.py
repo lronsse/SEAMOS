@@ -205,11 +205,15 @@ class Fuselage:
         self.radius = radius
         self.n_fuselages = n_fuselages
         self.volume = self.length * np.pi * self.radius ** 2  # Todo: find more accurate fuselage volume formula
-
+       
+    def pressure_diff(depth, area, rho_water, g, p_internal):
+        p = rho_water * depth * g
+        return abs(p_internal-p)
+    
     def longitudinal_stress(self, delta_p, thickness):
         """
         Function that calculates the longitudinal stress in a pressurised cylinder
-
+        
         :param delta_p: pressure difference between inside and outside fuselage [Pa]
         :param thickness: thickness of the fuselage [m]
         :return: Circumferential stress [Pa]
