@@ -14,6 +14,7 @@ V_r = 0.001 # m3
 V_c = 0.001 # m3
 A_t = (0.02/2)**2 * pi # m2
 dt = 0.001
+m_test = 16  #kg
 
 plot_t = True
 plot_imp = True
@@ -44,7 +45,7 @@ if plot_t:
 
     I_tot = sum(Ftarr) * dt
     print('total impulse:', I_tot, '[Ns]')
-    m_test = 20.
+    m_test = 16.
     print(f'dV for {m_test}kg: {I_tot / m_test} m/s')
 
 
@@ -87,14 +88,15 @@ if plot_imp:
             Iarr.append(I_tot)
 
         print(Iarr)
+        varr = [I_i/m_test for I_i in Iarr]
         prarr = [5, 15, 30, 60, 120, 240]
         style = ['-', '--', '-.', ':']
-        plt.plot(prarr, Iarr, label=f'{V_c*1000} L', linestyle=style[i])
+        plt.plot(prarr, varr, label=f'{V_c*1000} L', linestyle=style[i])
         i += 1
 
     plt.legend()
     plt.xscale('log')
-    plt.ylabel('Delivered Impulse [Ns]')
+    plt.ylabel('Delivered dV [m/s]')
     plt.xlabel('Initial Pressurant Pressure [Bar]')
     plt.show()
 
