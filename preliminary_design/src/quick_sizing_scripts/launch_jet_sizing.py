@@ -1,6 +1,6 @@
 """
 A quick script for sizing the launch jet of the Buffin
-Its messy, but thats fine, you shouldnt need it anyways
+It's messy, but that's fine, you shouldnt need it anyways
 """
 
 
