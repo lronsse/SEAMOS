@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # required speed is 2.5km/h which is 0.7 m/s
 V_current = 1.3 # [ m / s ] --> this gives room for moving up current for current speeds up to 1.3 m/s
 V_move = 0.7
-V_flow = V_current + V_move
+V_flow = 1.44 #V_current + V_move
 l = 2 # [ m ] --> bit random estimated diameter of the ball ( revise )
 nu = 1.3 * 10 ** ( -6 ) # kinematic viscosity of water at a tempersture om 10^C
 Re = ( V_current * l ) / nu # calculate reynoldsnumber, used to pick a Cd
@@ -82,11 +82,16 @@ def driving_pwr(T, D):
     P = ( a / ( rho * np.pi )) ** ( 1 / 2 ) * ( T ** (3 / 2) ) / D
     return P
 
+def battery_weight(P):
+    P = P / 0.57 / 0.8
+
+
+
 # now using: Q = 0.19, rpm = 16,000
 # phi = 10degr, alpha = 5 degr
 
-T_req = thrust_required(Cd, V_flow, 0.5) # / 2 # uncomment when thinking of 2 props
-P_req = power_required(Cd, V_flow, 0.5)
+T_req = thrust_required(Cd, V_flow, 0.4) # / 2 # uncomment when thinking of 2 props
+P_req = power_required(Cd, V_flow, 0.4)
 rpm_req = rpm_from_thrust(T_req, V_flow, 2.39, 0.7 )
 T_del = thrust_from_motor(0.7, 0.7, 220, 4.29, V_flow)
 P_i = eta_total(T_req, V_flow, 24, 5.1) * P_req

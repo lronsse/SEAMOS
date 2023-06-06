@@ -6,8 +6,8 @@ import scipy.optimize as optimize
 
 """ Parameters """
 # Route
-v_current = 1.3  # m/s, current velocity
-l_unit = 0.  # m, longitudinal unit length
+v_current = 1  # m/s, current velocity
+l_unit = 100  # m, longitudinal unit length
 w_space = 100.  # m, lateral unit spacing
 n_units = 10.  # -, no. of units surveyed
 # # Underwater drag
