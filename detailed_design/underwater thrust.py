@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # required speed is 2.5km/h which is 0.7 m/s
 V_current = 1.3 # [ m / s ] --> this gives room for moving up current for current speeds up to 1.3 m/s
@@ -11,13 +12,14 @@ Cd = 0.3 # The chosen Cd
 ozin_to_Nm = 0.0070615 # convert random internet unit
 Q = 180 * ozin_to_Nm # the conversion
 m = 16 # [ kg ] estimated mass of the drone
-a = 0.1 # acceleration required to reach speed of 1 [ m/s ] in 10 seconds
+accel = 0.1 # acceleration required to reach speed of 1 [ m/s ] in 10 seconds
+diam = 0.2 #np.linspace(0.05, 0.4, 100)
 
 def thrust_required(Cd, V, D):
     rho = 1023
     r = D / 2
     S = np.pi * r ** 2
-    T = Cd * ( 1/ 2 ) * rho * V ** 2 * S + m * a # just F = m*a with thrust and drag
+    T = Cd * ( 1/ 2 ) * rho * V ** 2 * S + m * accel # just F = m*a with thrust and drag
     return T
 
 def power_required(Cd, V, D):
@@ -37,8 +39,6 @@ def eta_total(T, V, volt, I):
     e_tot = ( T * V ) / ( volt * I )
     return e_tot
 
-
-
 def thrust_from_motor(eta_p, eta_m, volt, I, V):
     thrust_delivered = ( eta_p * eta_m * volt * I ) / V
     return thrust_delivered
@@ -56,22 +56,68 @@ def thrust_coef():
     v
     return
 
-# now using: Q = 0.19, rpm = 16,000
+def rpm_from_prop(V, D, phi, alpha):
+    phi = (phi / 360 * (2 * np.pi))
+    alpha = (alpha / 360 * (2 * np.pi))
+    rpm =( 2 * V ) / ( D * np.tan( phi - alpha ) )
+    return rpm
 
-T_req = thrust_required(Cd, V_flow, 0.5)
+def find_torque(phi, alpha, T, D):
+    phi = (phi / 360 * (2 * np.pi))
+    alpha = (alpha / 360 * (2 * np.pi))
+    a = 1.5
+    Q = ( a * np.tan(phi - alpha) / 4 ) * T * D
+    return Q
+
+def torque_from_rpm(rpm, Kq, D):
+    omega = ( rpm * 2 * np.pi ) / 360
+    rho = 1023
+    Q = ( Kq * rho * omega ** 2 * D ** 5 ) / ( 4 * np.pi ** 2 )
+    return Q
+
+
+def driving_pwr(T, D):
+    rho = 1023
+    a = 1.5
+    P = ( a / ( rho * np.pi )) ** ( 1 / 2 ) * ( T ** (3 / 2) ) / D
+    return P
+
+# now using: Q = 0.19, rpm = 16,000
+# phi = 10degr, alpha = 5 degr
+
+T_req = thrust_required(Cd, V_flow, 0.5) # / 2 # uncomment when thinking of 2 props
 P_req = power_required(Cd, V_flow, 0.5)
 rpm_req = rpm_from_thrust(T_req, V_flow, 2.39, 0.7 )
 T_del = thrust_from_motor(0.7, 0.7, 220, 4.29, V_flow)
 P_i = eta_total(T_req, V_flow, 24, 5.1) * P_req
 e_p = eta_prop(T_req, V_flow, 16000, 0.19 )
 
-
-
 print('thrust required:', T_req)
 print('Power required:', P_req)
-print('thrust delivered:', T_del)
-print('input power required:', P_i)
-print('propeller efficiency:', e_p)
-print()
+#print('thrust delivered:', T_del)
+#print('input power required:', P_i)
+#print('propeller efficiency:', e_p)
+#print(P_req / e_p)
 
+print('rpm:',rpm_from_prop(V_flow, diam, 10,  5 ) * 60 / ( 2 * np.pi))
+print('applied torque:', find_torque(10, 5, T_req , diam))
+print('driving power:', driving_pwr(T_req , diam))
+
+plt.plot(diam, rpm_from_prop(V_flow, diam, 10,  5 ) * 60 / ( 2 * np.pi))
+plt.title('Rotations per minute vs. Propeller diameter')
+plt.xlabel('Propeller diameter [m]')
+plt.ylabel('Angular speed [rpm]')
+#plt.show()
+plt.plot(diam,find_torque(10, 5, T_req , diam) )
+plt.title('Shaft torque vs. Propeller diameter')
+plt.xlabel('Propeller diameter [m]')
+plt.ylabel('Shaft torque [Nm] ')
+#plt.show()
+plt.plot(diam, driving_pwr(T_req , diam) )
+plt.title('Propeller driving power vs. Propeller diameter')
+plt.xlabel('Propeller diameter [m]')
+plt.ylabel('Propeller driving power required [W]')
+#plt.show()
+
+print('torque:', torque_from_rpm(800, 0.0877, 0.2))
 
