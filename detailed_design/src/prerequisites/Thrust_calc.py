@@ -187,6 +187,7 @@ def Energy_hop_cruise(v_stall,drag):
     return energy_cruise
 
 
+
 rho=1.225
 Prop_calc()
 Energy_hop_VTOL(12,15,15)
