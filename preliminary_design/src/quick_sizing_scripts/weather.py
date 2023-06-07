@@ -31,6 +31,7 @@ num=[]
 
 if __name__ == '__main__':
 
+
     # result_current, result_waves, result_wind = weather_availability(float(input('Enter percentage of month (write digits e.g. 80): ',)))
 
     # print('Must design for currents up to', result_current, 'm/s')
@@ -51,3 +52,6 @@ if __name__ == '__main__':
     plt.xlabel("Percentage")
     plt.ylabel("m/s")
     plt.show()
+
+
+
