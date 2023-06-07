@@ -105,18 +105,18 @@ class WaterChamber:
 
 if __name__ == '__main__':
     PB = WaterChamber(volume_reservoir=1.5/1000, pressure_reservoir=320E5)
-    PB.plot_isentropic([1, 4, 8, 16])
+    PB.plot_isentropic([1, 4, 8, 12, 16, 20])
     PB.plot_isochoric(5E-3)
     PB.show('Paintball Tank')
 
-    # PB.plot_isoenthalpic([.5, 1, 2])
-    # PB.plot_isochoric(5E-3)
-    # PB.show('Paintball Tank')
+    # PBR.plot_isoenthalpic([.5, 1, 2])
+    # PBR.plot_isochoric(5E-3)
+    # PBR.show('Paintball Tank')
 
-    CC = WaterChamber(volume_reservoir=.5/1000, pressure_reservoir=25E5)
-    PB.plot_isentropic([1, 1, 1])
-    PB.plot_isochoric(5E-3)
-    PB.show('Combustion')
+    CC = WaterChamber(volume_reservoir=.5/1000, pressure_reservoir=80E5)
+    CC.plot_isentropic([1, 1, 1])
+    CC.plot_isochoric(5E-3)
+    CC.show('Combustion')
 
     # PB.plot_isoenthalpic([.5, 1, 2])
     # PB.plot_isochoric(5E-3)
