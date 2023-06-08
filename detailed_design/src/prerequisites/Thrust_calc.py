@@ -220,6 +220,7 @@ def Optimal_flight_energy(roc):
     #cl/cd 25
     mass=15
     wing_area=1.25
+    eta_prop=0.8
     time_tab=[[],[],[],[]]
     distance_tab=[[],[],[]]
     energy_tab=[[],[],[]]
@@ -228,7 +229,7 @@ def Optimal_flight_energy(roc):
         climb_time= altitude/roc
         climb_distance = (climb_time*np.sqrt(v_airspeed**2-roc**2))
         climb_angle = np.arcsin(float(roc / v_airspeed))
-        energy_climb = Thrust_in_climb(climb_angle,drag_in_cruise,mass)*climb_distance/eta_motor
+        energy_climb = Thrust_in_climb(climb_angle,drag_in_cruise,mass)*climb_distance/eta_motor/eta_prop
 
         glide_range=Glide_range(altitude,lift_to_drag)
         glide_time=altitude/(c_d/c_l*np.sqrt(mass*9.81/(0.5*Rho_average(altitude)*wing_area*c_l)))
@@ -254,7 +255,7 @@ def Optimal_flight_energy(roc):
             atmosphere=Atmosphere(altitude)
 
             cruise_drag=v_airspeed**2*float(atmosphere.density[0])*0.5*c_d*wing_area
-            energy_cruise = cruise_drag/eta_motor*cruise_range
+            energy_cruise = cruise_drag/eta_motor*cruise_range/eta_prop
             cruise_time=cruise_range/v_airspeed
 
         time_tab[0] = np.append(time_tab[0],climb_time)
@@ -353,13 +354,14 @@ def Plot_diameter_vs_roc():
     plt.show()
 
 print(0.5*Rho_average(200)*20**2*1.25*0.013)
-rho=1.225
-Prop_calc(1)
+#rho=1.225
+
 #Energy_hop_VTOL(12,15,15)
 #Energy_hop_NOT_VTOL(12,15,15)
 print(20*np.sin(20/180*np.pi))
 
 roc=1
+Prop_calc(roc)
 time_tab,distance_tab,energy_tab,altitude_tab=Optimal_flight_energy(roc)
 Plot_optimal(time_tab,distance_tab,energy_tab,altitude_tab,roc)
 Plot_for_different_roc()
