@@ -9,18 +9,18 @@ from pyqtgraph.Qt import QtCore
 class ControllerBase:
 
     def __init__(self):
-        self.name = "base"
+        self.name = "null"
+        self.state = None
 
-    @staticmethod
-    def update_state(state):
-        pass
+    def update_state(self, state):
+        self.state = state
 
     @staticmethod
     def update_command():
-        return np.array([0, 0, 0, 0, 0])
+        return np.array([0, 0, 0, 0, 50])
 
 
-def simulate(scenario="OpenWater-Torpedo", controller=None, title="DSE07 | SEAMOS SIMULATION"):
+def simulate(scenario="OpenWater-Torpedo", controller=None, title="null"):
     # ==== CONFIG ====
     config = holoocean.packagemanager.get_scenario(scenario)
     # sensor_config = config['agents'][0]['sensors'][-1]["configuration"]
@@ -35,6 +35,8 @@ def simulate(scenario="OpenWater-Torpedo", controller=None, title="DSE07 | SEAMO
     else:
         print(f"No controller defined, using null controller")
         controller = ControllerBase()
+
+    title = f"DSE07 | SEAMOS SIMULATION | {title} | {controller.name}"
 
     def rot2eul(R):
         beta = -np.arcsin(R[2,0])
