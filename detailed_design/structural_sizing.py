@@ -21,7 +21,8 @@ Outputs: - Stresses due to all loads
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import quad, simps, cumtrapz
+from scipy.integrate import quad, simps
+from scipy.interpolate import interp1d
 
 g = 9.81
 n_points = 1000
@@ -277,18 +278,18 @@ class Wing:
 
         return np.array(J_array)
 
-    def calculate_internal_loads(self, mass_plane_nowings, mass_wings, plot):  # todo: adapt to new planform
+    def calculate_internal_loads(self, mass_plane_nowings, mass_wings, wing_mass_function, plot):  # todo: adapt to new planform
         # Input parameters
         # Length of the beam
         L = self.wing_span / 2
 
         # List of point loads (position, magnitude)
-        point_loads = [(0.0, mass_plane_nowings * g / 2), (L / 2, mass_wings * g * 0 / 2)]  # downwards positive
+        point_loads = [(0.0, mass_plane_nowings * g / 2), (L / 2, mass_wings * g *0 / 2)]  # downwards positive
 
         # Non-uniform load as a function of x
         def w(x):
             lift = (mass_wings + mass_plane_nowings)*g
-            return - (4 * lift / (np.pi * self.wing_span) * np.sqrt(1-(2*x/self.wing_span) ** 2)) #+ mass_wings * g / self.b * x
+            return - (4 * lift / (np.pi * self.wing_span) * np.sqrt(1-(2*x/self.wing_span) ** 2)) + wing_mass_function(x) * g
 
         # Positions along the beam
         x = np.linspace(0, L, n_points)
@@ -384,9 +385,18 @@ class Wing:
             mass_array.append(d_mass)
             volume = volume + d_volume
 
+        def interpolate_masses(wingspan_values, mass_values):
+            # Create the interpolation function
+            f = interp1d(wingspan_values, mass_values, kind='cubic')
+
+            # Return the interpolation function
+            return f
+
+        wing_mass_function = interpolate_masses(np.linspace(0, self.wing_span / 2, n_points), mass_array)
+
         self.mass = np.sum(mass_array) * 2
 
-        return self.mass
+        return self.mass, wing_mass_function
 
     def wing_total_volume(self, chordlengths):
         volume_array = []
@@ -466,7 +476,9 @@ if __name__ == '__main__':
     print(wing.root_chord, wing.tip_chord)
 
     chord_array = np.linspace(wing.root_chord, wing.tip_chord, n_points)
-    wing.calculate_internal_loads(12, 5, False)
+    wing_mass = wing.calc_wing_mass(chord_array, alu)[0]
+    wing_mass_function = wing.calc_wing_mass(chord_array, alu)[1]
+    wing.calculate_internal_loads(12, wing_mass, wing_mass_function, True)
 
     first_moment_of_area = wing.first_moment_area(chord_array)
     second_moment_of_area = wing.second_moment_of_area(chord_array)
@@ -478,7 +490,7 @@ if __name__ == '__main__':
     shear_stress_shear = wing.calculate_shear_stress(second_moment_of_area, first_moment_of_area)
     shear_stress = shear_stress_shear + shear_stress_torsion
 
-    print(wing.calc_wing_mass(chord_array, alu))
+    print(wing.calc_wing_mass(chord_array, alu)[0])
     #wing.plot_planform()
 
 
