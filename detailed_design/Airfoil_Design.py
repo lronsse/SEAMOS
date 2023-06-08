@@ -154,8 +154,8 @@ if __name__ == '__main__':
     data = data.set_index('alpha')
     data = data.interpolate('linear')
 
-    plt.plot(data.index, data['CL'])
-    plt.title(f'CL alpha for naca{naca_number}')
+    plt.plot(data.index, data['Cm'])
+    plt.title(f'CM alpha for naca{naca_number}')
     plt.show()
 
     wing = planform(0.1, 1.25, 5)
