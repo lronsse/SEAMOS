@@ -1,9 +1,50 @@
+"""
+Wrapper for HoloOcean with extendable plotting engine. (by Lilly)
+To use, import the simulate function and run it with custom controller,
+that is a child of the ControllerBase class, or at least implements:
+    variables:
+        - name: string
+        - has_plots: bool
+    functions:
+        - update_state(state): state=dict -> None
+        - update_command(): -> np.array(['commands'])
+
+HoloOcean is made by
+@inproceedings{Potokar22icra,
+   author = {E. Potokar and S. Ashford and M. Kaess and J. Mangelson},
+   title = {Holo{O}cean: An Underwater Robotics Simulator},
+   booktitle = {Proc. IEEE Intl. Conf. on Robotics and Automation, ICRA},
+   address = {Philadelphia, PA, USA},
+   month = may,
+   year = {2022}
+}
+"""
+
 import holoocean
 # import matplotlib.pyplot as plt
 import numpy as np
 
 import pyqtgraph as pqg
 from pyqtgraph.Qt import QtCore
+
+
+def rot2eul(rotation_matrix):
+    beta = -np.arcsin(rotation_matrix[2, 0])
+    alpha = np.arctan2(rotation_matrix[2, 1] / np.cos(beta), rotation_matrix[2, 2] / np.cos(beta))
+    gamma = np.arctan2(rotation_matrix[1, 0] / np.cos(beta), rotation_matrix[0, 0] / np.cos(beta))
+    return np.array((alpha, beta, gamma)) / np.pi * 180
+
+
+def wrap_around(value, bounds):
+    difference = bounds[1] - bounds[0]
+    if bounds[0] <= value <= bounds[1]:
+        return value
+    elif value < bounds[0]:
+        return value + difference
+    elif value > bounds[1]:
+        return value - difference
+    else:
+        return value
 
 
 class ControllerBase:
@@ -39,13 +80,6 @@ def simulate(scenario="SimpleUnderwater-Hovering", controller=None, title="null"
         controller = ControllerBase()
 
     title = f"DSE07 | SEAMOS SIMULATION | {title} | {controller.name}"
-
-    def rot2eul(R):
-        beta = -np.arcsin(R[2,0])
-        alpha = np.arctan2(R[2,1]/np.cos(beta),R[2,2]/np.cos(beta))
-        gamma = np.arctan2(R[1,0]/np.cos(beta),R[0,0]/np.cos(beta))
-        return np.array((alpha, beta, gamma)) / np.pi * 180
-
 
     # pyQTgraph init
     app = pqg.mkQApp(title)

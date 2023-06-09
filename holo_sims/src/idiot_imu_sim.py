@@ -1,49 +1,14 @@
-from simulation_base import simulate, ControllerBase
+"""
+Example implementation of sim based on simulation_base
+
+Has a PID controller for the yaw and a state estimator for roll, pitch and yaw
+"""
+
+
+from simulation_base import simulate, ControllerBase, rot2eul, wrap_around
 import pyqtgraph as pqg
 import numpy as np
-
-
-def rot2eul(R):
-    beta = -np.arcsin(R[2, 0])
-    alpha = np.arctan2(R[2, 1] / np.cos(beta), R[2, 2] / np.cos(beta))
-    gamma = np.arctan2(R[1, 0] / np.cos(beta), R[0, 0] / np.cos(beta))
-    return np.array((alpha, beta, gamma)) / np.pi * 180
-
-
-def wrap_around(value, bounds):
-    difference = bounds[1] - bounds[0]
-    if bounds[0] <= value <= bounds[1]:
-        return value
-    elif value < bounds[0]:
-        return value + difference
-    elif value > bounds[1]:
-        return value - difference
-    else:
-        return value
-
-
-class PID:
-
-    def __init__(self, p_gain, i_gain, d_gain, value_range):
-        self.p_gain = p_gain
-        self.i_gain = i_gain
-        self.d_gain = d_gain
-        self.set_point = 0
-        self.value_range = value_range
-
-        self.previous_error = 0
-        self.i_value = 0
-
-    def set(self, set_point):
-        self.set_point = set_point
-
-    def get_output(self, current_value):
-        error = self.set_point - current_value
-        self.i_value += error
-        self.i_value = min(max(self.i_value, self.value_range[0]), self.value_range[1])
-        d_value = error - self.previous_error
-        self.previous_error = error
-        return min(max(error * self.p_gain + self.i_value * self.i_gain + d_value * self.d_gain, self.value_range[0]), self.value_range[1])
+from simple_pid import PID
 
 
 class IdiotIMUController(ControllerBase):
