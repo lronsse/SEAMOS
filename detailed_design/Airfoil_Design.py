@@ -6,8 +6,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+"""
+File getting aerodynamic airfoil data
 
-
+Inputs: airfoil geometry (currently only naca 4 digit)
+        Reynolds number
+        Mach number
+        
+Outputs: Airfoil Polars (cl, cd, cm vs alpha, cl vs cd)
+         Airfoil stability coefficients
+         
+# todo: adapt code for different airfoils, try to implement wing as well (maybe use aeropy?)
+"""
 
 def download_airfoil(airfoil_number):
     url = f'http://airfoiltools.com/airfoil/seligdatfile?airfoil=naca{airfoil_number}-il'
@@ -132,7 +142,7 @@ def plot_planform(sweep_quarter_chord, taper_ratio, wing_span, root_chord, tip_c
 
 
 if __name__ == '__main__':
-    naca_number = '2412'
+    naca_number = '1412'
     mach = 0.1
     reynolds = 500000
 
