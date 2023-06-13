@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image as im
 import time
 import scipy
+import cv2
 
 pixel_brightness_threshold = 6.5e-02
 
@@ -16,7 +17,7 @@ pixel_brightness_threshold = 6.5e-02
 #"rotation": [0.0, 0.0, 30.0]
 
 #### GET SONAR CONFIG
-scenario = "ExampleLevel-HoveringSonar"
+scenario = "ExampleLevel-HoveringSonarCamera"
 config = holoocean.packagemanager.get_scenario(scenario)
 config = config['agents'][0]['sensors'][-1]["configuration"]
 azi = config['Azimuth']
@@ -192,6 +193,83 @@ def position():
 
     return x, y, z, alpha, beta, gamma
 
+def run_sonar():
+    # Get a fan shaped array from sonar
+    sonar_image = state['ImagingSonar']
+    adjusted_image, point_array = seaweed_recognition_first_point(sonar_image)
+    array_to_image(sonar_image, "original" + str(i))
+    array_to_image(adjusted_image, "adjusted" + str(i))
+
+    x, y = square_to_fan(point_array)
+
+    # Split domain and plot
+    output, x_corrected, y_corrected, should_plot, midpoints = split_domain(5, x, y)
+    fig, ax = plt.subplots(figsize=(9, 6))
+    plt.xlim([-100, 100])
+    plt.ylim([-100, 100])
+    print(should_plot)
+    for k in range(len(output)):
+        if should_plot[k] == 1:
+            plt.plot(output[k, 0], output[k, 1], color='orange')
+            print(should_plot * midpoints)
+
+    ax.scatter(x_corrected, y_corrected, s=60, alpha=0.7, edgecolors="k")
+    # x, y, z, roll, pitch, yaw = position()
+
+    plt.savefig('images/plot' + str(i))
+    time.sleep(0.2)
+    plt.close()
+    return should_plot * midpoints
+
+def camera_noise(img):
+    mean = 0
+    stddev = 180
+    noise = np.zeros(img.shape, np.uint8)
+    cv2.randn(noise, mean, stddev)
+
+    # Add noise to image
+    img = cv2.add(img, noise)
+    return img
+def run_camera():
+    img = state["LeftCamera"]
+
+    # Generate random Gaussian noise
+    img = camera_noise(img)
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    ret, thresh = cv2.threshold(gray, 110, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh, 1, 2)
+    # print("Number of contours detected:", len(contours))
+
+    for cnt in contours:
+        print(cnt)
+        img = cv2.drawContours(img, [cnt], -1, (0, 255, 255), 3)
+        x1, y1 = cnt[0][0]
+        approx = cv2.approxPolyDP(cnt, 0.1 * cv2.arcLength(cnt, True), True)
+        if 4 < len(approx) < 10:
+            x, y, w, h = cv2.boundingRect(cnt)
+            ratio = float(w) / h
+            if w * h > 10:
+                pass
+                # cv2.putText(img, 'Rectangle', (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+    #cv2.imshow("Shapes", img)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+    mask = np.ones(img.shape[:2], dtype="uint8") * 255
+
+    # Draw the contours on the mask
+    cv2.drawContours(mask, contours, -1, 0, -1)
+
+    # remove the contours from the image and show the resulting images
+    img = cv2.bitwise_and(img, img, mask=mask)
+    #cv2.imshow("Mask", mask)
+    #cv2.imshow("After", img)
+    #cv2.waitKey(0)
+    name = 'images/image' + str(i) + '.png'
+    cv2.imwrite(name, img)
+    #cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 # Cutoffs for the mean squared error and number of points that have to pass the 'average test' to decide that there is a system there
 mse_cutoff = 10
@@ -207,36 +285,11 @@ with holoocean.make(scenario) as env:
         state = env.tick()
 
         if 'ImagingSonar' in state:
-            # Get a fan shaped array from sonar
-            sonar_image = state['ImagingSonar']
-            adjusted_image, point_array = seaweed_recognition_first_point(sonar_image)
-            array_to_image(sonar_image, "original" + str(i))
-            array_to_image(adjusted_image, "adjusted" + str(i))
-
-
-            x, y = square_to_fan(point_array)
-
-            #Split domain and plot
-            output, x_corrected, y_corrected, should_plot, midpoints = split_domain(5, x, y)
-            fig, ax = plt.subplots(figsize=(9, 6))
-            plt.xlim([-100, 100])
-            plt.ylim([-100, 100])
-            print(should_plot)
-            for k in range(len(output)):
-                if should_plot[k] == 1:
-                    plt.plot(output[k,0], output[k,1], color='orange')
-                    print(should_plot* midpoints)
-
-            ax.scatter(x_corrected, y_corrected, s=60, alpha=0.7, edgecolors="k")
-            #x, y, z, roll, pitch, yaw = position()
-
-
-
-            plt.savefig('images/plot' + str(i))
-            time.sleep(0.2)
-            plt.close()
+            where_system = run_sonar()
+            if "LeftCamera" in state:
+                run_camera()
+            #plt.ioff()
+            #plt.show()
 
 
 print("Finished Simulation!")
-plt.ioff()
-plt.show()
