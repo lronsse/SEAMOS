@@ -19,7 +19,7 @@ sys_m = 16  # [kg] System mass
 a = 0.3  # [m/s^2] depth acceleration
 V = 20 / 1000  # submerged volume
 rho_tank = 1.2  # kg/dm^3
-thickness = 0.003  # [mm]
+thickness = 0.005  # [m]
 pump_volt = 16
 pump_amp = 2
 pump_mass = 0.340  # [kg]
@@ -41,7 +41,7 @@ def thruster_battery_mass(T,thruster_thrust,mission_t,Ed,thruster_m,thruster_pow
     thrust_battery_m = (thruster_power*mission_t)/Ed
     total_m=thrust_battery_m + n_t*thruster_m
     thruster_per_kg=(T)/total_m
-    return thrust_battery_m,total_m,n_t,thruster_per_kg
+    return thrust_battery_m,n_t,thruster_per_kg,total_m
 
 
 print(thruster_battery_mass(thrust_req(sys_m,a,rho,V),thruster_thrust,mission_t,Ed,thruster_m,thruster_power))
@@ -63,20 +63,23 @@ def ballast_volume_req(m, a, rho, V):
     empty_V = (m * g - m * aup) / (rho * g)
     full_V = (m * g - m * adown) / (rho * g)
     tank_size = max(np.abs(V - full_V), np.abs(V-empty_V))
+    # R_in = (3*tank_size/(4*np.pi))**(1/3)
+    R_in=0.15
     dim = np.cbrt(tank_size)
-    tank_mass = 6 * dim ** 2 * thickness * rho_tank * 1000  # [kg]
+    tank_mass = ((dim+thickness)**2-(dim**2))*rho_tank
+    # tank_mass = 6 * dim ** 2 * thickness * rho_tank * 1000  # [kg]
+    tank_mass=(4*np.pi/3)*((R_in+thickness)**3-R_in**3)*rho_tank
     tank_per_kg = (tank_size * 1 * 9.81) / tank_mass
     # pump_watt=pump_amp*pump_volt
     pump_watt= 15 # 15-99 W
-    pump_battery_m = (pump_watt * (90 / 60)) / Ed
+    pump_battery_m = (pump_watt * (5 / 60)) / Ed
     total_m = pump_battery_m + tank_mass + pump_mass
     return empty_V * 1000, full_V * 1000, tank_size * 1000,tank_mass, pump_battery_m,total_m
 
 
 
-
-print(ballast_volume_req(1, 1, 1, 1))
-
+print("ahhhhh")
+print(ballast_volume_req(sys_m, a, rho, V))
 
 
 

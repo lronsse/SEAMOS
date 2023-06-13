@@ -65,9 +65,20 @@ class WaterChamber:
         for n_discharge in discharges_per_reservoir:
             dv_list = []
             for chamber_pressure in self.pressure_plot_range:
-                chamber_volume = (capacity/chamber_pressure/n_discharge)**(1/self.reservoir_gamma)
+                chamber_volume = (((self.pressure_reservoir/chamber_pressure)
+                                  * (self.volume_reservoir**self.reservoir_gamma)
+                                  - self.volume_reservoir**self.reservoir_gamma)/n_discharge)**(1/self.reservoir_gamma)
                 dv_list.append(self.dV_from_PV(chamber_pressure, chamber_volume))
             plt.plot(self.pressure_plot_range/1e5, dv_list, label=f'isentropic, n = {n_discharge}')
+
+    def plot_single_reservoir(self, label):
+        capacity = self.pressure_reservoir * (self.volume_reservoir**self.reservoir_gamma)
+
+        dv_list = []
+        for chamber_pressure in self.pressure_plot_range:
+            chamber_volume = (capacity/chamber_pressure)**(1/self.reservoir_gamma)-self.volume_reservoir
+            dv_list.append(self.dV_from_PV(chamber_pressure, chamber_volume))
+        plt.plot(self.pressure_plot_range/1e5, dv_list, label=label)
 
     def plot_isoenthalpic(self, chamber_scaling=[0.5, 1, 2]):
         if type(chamber_scaling) is not list:
@@ -93,7 +104,7 @@ class WaterChamber:
                 chamber_volume_plot = volume_factor*chamber_volume
                 dv_list.append(self.dV_from_PV(chamber_pressure, chamber_volume_plot))
             plt.plot(self.pressure_plot_range/1e5, dv_list,
-                     label=f'isochoric, V =  {chamber_volume_plot*1E3} L',
+                     label=f'const. v_c =  {chamber_volume_plot*1E3} L',
                      color=line_colors[plot_counter], linestyle='--')
 
     def show(self, title=''):
@@ -104,19 +115,30 @@ class WaterChamber:
         plt.show()
 
 if __name__ == '__main__':
-    PB = WaterChamber(volume_reservoir=1.5/1000, pressure_reservoir=320E5)
-    PB.plot_isentropic([1, 4, 8, 12, 16, 20])
-    PB.plot_isochoric(5E-3)
-    PB.show('Paintball Tank')
+    # volumes = [1.5, 3, 1.5]
+    # pressures = [300, 300, 500]
+    # for i, vol in enumerate(volumes):
+    #     PB = WaterChamber(volume_reservoir=vol/1000, pressure_reservoir=pressures[i]*1E5)
+    #     PB.plot_single_reservoir(f'v_r={vol} L, p_r={pressures[i]} bar')
+    # PB.plot_isochoric(7.5E-3)
+    # PB.show('')
 
-    # PBR.plot_isoenthalpic([.5, 1, 2])
-    # PBR.plot_isochoric(5E-3)
-    # PBR.show('Paintball Tank')
+    #
+    PB = WaterChamber(volume_reservoir=1.5/1000, pressure_reservoir=300E5)
+    PB.plot_isentropic([1, 2, 8, 20])
+    PB.plot_isochoric(7.5E-3)
+    PB.show('')
 
-    CC = WaterChamber(volume_reservoir=.5/1000, pressure_reservoir=80E5)
-    CC.plot_isentropic([1, 1, 1])
-    CC.plot_isochoric(5E-3)
-    CC.show('Combustion')
+    PB = WaterChamber(volume_reservoir=7.5/1000, pressure_reservoir=300E5)
+    PB.plot_isentropic([1, 2, 8, 20])
+    PB.plot_isochoric(7.5E-3)
+    PB.show('')
+    # print(C1*5*28.2*1E5/1000)
+
+    # CC = WaterChamber(volume_reservoir=.5/1000, pressure_reservoir=80E5)
+    # CC.plot_isentropic([1, 1, 1])
+    # CC.plot_isochoric(5E-3)
+    # CC.show('Combustion')
 
     # PB.plot_isoenthalpic([.5, 1, 2])
     # PB.plot_isochoric(5E-3)
