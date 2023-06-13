@@ -17,6 +17,8 @@ Inputs: Geometry: - Wing (planform + airfoil)
 Outputs: - Stresses due to all loads
          - Design requirements needed for bearing with loads
          - Deflections (if wanted, let Mathis know)
+         - Mass of wing
+         - Mass of fuselage
 """
 
 import numpy as np
@@ -71,7 +73,7 @@ class Material:
 
 
 class Wing:
-    def __init__(self, wing_area, aspect_ratio, mach, airfoil, thickness, wing_mass):
+    def __init__(self, wing_area, aspect_ratio, mach, airfoil, thickness, material, plane_mass):
         """
         Initiate variable of type planform
 
@@ -87,6 +89,10 @@ class Wing:
         :param spar_front: The percentage of the cord where the front spar is
         :type spar_front: float
         """
+        self.le_tip = None
+        self.first_moment_of_area = None
+        self.plane_mass = plane_mass
+        self.chord_array = None
         self.bending_moment = None
         self.shear_force = None
         self.tip_chord = None
@@ -96,10 +102,11 @@ class Wing:
         self.taper_ratio = None
         self.wing_area = wing_area
         self.aspect_ratio = aspect_ratio
-        self.mass = wing_mass
+        self.mass = None
         self.mach = mach
         self.airfoil = airfoil
         self.thickness_wing_sheet = thickness
+        self.material = material
 
     def planform(self):
         if self.mach < 0.7:
@@ -120,15 +127,15 @@ class Wing:
         x_quarter_root = self.root_chord / 4
         x_quarter_tip = x_quarter_root + self.wing_span / 2 * np.tan(sweep_quarter_chord_rad)
         x_quarter = x_quarter_root + y * np.tan(sweep_quarter_chord_rad)
-        le_tip = x_quarter_tip - 0.25 * self.tip_chord
+        self.le_tip = x_quarter_tip - 0.25 * self.tip_chord
         te_tip = x_quarter_tip + 0.75 * self.tip_chord
-        c_t = np.linspace(le_tip, te_tip, n_points)
-        leading_edge = le_tip / (self.wing_span / 2) * y
+        c_t = np.linspace(self.le_tip, te_tip, n_points)
+        leading_edge = self.le_tip / (self.wing_span / 2) * y
         trailing_edge = self.root_chord - (self.root_chord - te_tip) / (self.wing_span / 2) * y
 
         self.mean_aerodynamic_chord = self.root_chord * 2 / 3 * ((1 + self.taper_ratio + self.taper_ratio ** 2) / (1 + self.taper_ratio))
         y_lemac = self.wing_span / 2 * (self.root_chord - self.mean_aerodynamic_chord) / (self.root_chord - self.tip_chord)
-        leading_edge_mean_aerodynamic_chord = le_tip / (self.wing_span / 2) * y_lemac
+        leading_edge_mean_aerodynamic_chord = self.le_tip / (self.wing_span / 2) * y_lemac
         x_mean_aerodynamic_chord = np.linspace(leading_edge_mean_aerodynamic_chord, leading_edge_mean_aerodynamic_chord + self.mean_aerodynamic_chord, n_points)
 
         plt.plot(c_r, np.zeros(n_points), color='black')
@@ -217,7 +224,7 @@ class Wing:
         return I_x, I_y
     '''
 
-    def second_moment_of_area(self, chordlengths):
+    def second_moment_area(self, chordlengths):
         I_array = []
 
         for chordlength in chordlengths:
@@ -247,11 +254,11 @@ class Wing:
         return np.array(I_array)
 
 
-    def polar_moment_of_inertia(self, chordlengths):
+    def polar_moment_inertia(self):
         J_array = []
         t = self.thickness_wing_sheet
 
-        for chordlength in chordlengths:
+        for chordlength in self.chord_array:
             # Concatenate upper and lower coordinates
             xu, yu, xl, yl, dummy1, dummy2 = self.naca4(chord_length=chordlength)
 
@@ -351,13 +358,12 @@ class Wing:
     def calculate_shear_stress(self, second_moment_of_area, first_moment_area):
         return self.shear_force * first_moment_area / (second_moment_of_area * self.thickness_wing_sheet)
 
-    def shear_stress_torsion(self, moment_aero, chord_length):
-        a = self.naca4(chord_length)[4]
-        b = chord_length
-        polar_moment_inertia = np.pi * a ** 3 * b ** 3 / (a ** 2 + b ** 2)
-        polar_moment_inertia = self.polar_moment_of_inertia(chord_length)
-        distance_centroid_farpoint = b / 2
-        return moment_aero * distance_centroid_farpoint / polar_moment_inertia
+    def shear_stress_torsion(self, moment_aero):
+        shear_stress_torsion_array = []
+        for chord_length in self.chord_array:
+            shear_stress_torsion_array.append(moment_aero * chord_length / 2 / self.polar_moment_of_inertia)
+
+        return shear_stress_torsion_array
 
     def calc_wing_mass(self, chordlengths, material):
         # Calculate the differences between consecutive x and y values
@@ -408,8 +414,31 @@ class Wing:
             volume_array.append(d_volume)
 
 
-        total_volume = np.average(volume_array) * self.wing_span
-        return total_volume
+        self.total_volume = np.average(volume_array) * self.wing_span
+        return self.total_volume
+
+    def wing_main(self, plot=False):
+        self.planform()
+        self.plot_planform()
+        self.chord_array = np.linspace(self.root_chord, self.tip_chord, n_points)
+        self.mass = self.calc_wing_mass(self.chord_array, self.material)[0]
+
+        wing_mass_function = wing.calc_wing_mass(self.chord_array, alu)[1]
+
+        self.calculate_internal_loads(self.plane_mass - self.mass, self.mass, wing_mass_function, plot)
+
+        self.first_moment_of_area = self.first_moment_area(self.chord_array)
+        self.second_moment_of_area = self.second_moment_area(self.chord_array)
+        self.polar_moment_of_inertia = self.polar_moment_inertia()
+
+        self.normal_stress_bending = self.calculate_bending_stress(self.second_moment_of_area, self.naca4(self.chord_array)[4])
+
+        self.shear_stress_torsion = self.shear_stress_torsion(moment)
+        self.shear_stress_shear = self.calculate_shear_stress(self.second_moment_of_area, self.first_moment_of_area)
+        self.shear_stress = self.shear_stress_shear + self.shear_stress_torsion
+        self.total_volume = self.wing_total_volume(self.chord_array)
+        return
+
 
 
 class Fuselage:
@@ -463,40 +492,24 @@ class Fuselage:
 
 
 thickness = 1 * 10 ** -3
-AR = 10
-S = 1.25
+
+AR = 12
+S = 0.6
 mach = 0.1
 moment = 150
-
-if __name__ == '__main__':
-    wing = Wing(S, AR, mach, airfoil, thickness, 4)
-    alu = Material(1600, 180, 250, 70, 70, 1.2)
-
-    wing.planform()
-    print(wing.root_chord, wing.tip_chord)
-
-    chord_array = np.linspace(wing.root_chord, wing.tip_chord, n_points)
-    wing_mass = wing.calc_wing_mass(chord_array, alu)[0]
-    wing_mass_function = wing.calc_wing_mass(chord_array, alu)[1]
-    wing.calculate_internal_loads(12, wing_mass, wing_mass_function, True)
-
-    first_moment_of_area = wing.first_moment_area(chord_array)
-    second_moment_of_area = wing.second_moment_of_area(chord_array)
-    polar_moment_of_inertia = wing.polar_moment_of_inertia(chord_array)
-
-    normal_stress_bending = wing.calculate_bending_stress(second_moment_of_area, wing.naca4(chord_array)[4])
-
-    shear_stress_torsion = wing.shear_stress_torsion(moment, chord_array)
-    shear_stress_shear = wing.calculate_shear_stress(second_moment_of_area, first_moment_of_area)
-    shear_stress = shear_stress_shear + shear_stress_torsion
-
-    print(wing.calc_wing_mass(chord_array, alu)[0])
-    #wing.plot_planform()
+alu = Material(1600, 180, 250, 70, 70, 1.2)
 
 
-    print(wing.wing_total_volume(chord_array))
 
-    fuselage = Fuselage(1, 0.1, 1, 1 * 10 ** -3)
-    print(fuselage.volume, fuselage.mass(alu))
-
+wing = Wing(S, AR, mach, airfoil, thickness, alu, 16)
+wing.wing_main(True)
+print(wing.tip_chord)
+print(wing.root_chord)
+print(wing.wing_span)
+print(wing.mass)
+print(wing.total_volume)
+print(wing.taper_ratio)
+print(wing.le_tip)
+print(wing.mean_aerodynamic_chord)
+print(wing.chord(wing.wing_span / 2 - 0.868))
 

@@ -12,7 +12,7 @@ todo = nhops plot, provide l/d to Jan, tell billie size watts or kg, add timelin
 """
 import matplotlib.pyplot as plt
 import numpy as np
-import ElectricDroneSizing as eds
+#import ElectricDroneSizing as eds
 
 
 class Configuration:
@@ -66,7 +66,7 @@ class Configuration:
         self.n_hops = n_hops
         self.roc_vtol = roc_vtol
         self.plot = True
-        optimisation = False
+        optimisation = True
         if optimisation:
             self.plot = False
         self.power_consumption_flight_controller = 20
@@ -346,7 +346,12 @@ def weight_jan():
 
 
 if __name__ == '__main__':
-    puffin = Configuration('puffin', 12, 20, 1.4, 0.02, 0.5, 0.8, 0.8, 10, 4000, 6000, 15.28, 0.5, False, 1, 15, 20, 1, 6.5)
+    v_stall = np.linspace(10, 25)
+    wing_surface = []
+    for v in v_stall:
+        puffin = Configuration('puffin', v, 20, 1.356, 0.02, 0.5, 0.8, 0.8, 12, 4000, 6000, 14.352, 1, False, 1, 15, 20, 1, 6.5)
+        wing_surface.append(puffin.wing_surface)
 
-    print(puffin.energy_required_cruise)
-    print(puffin.power_required_cruise, (1 / puffin.lift_drag_cruise) * puffin.mtom * g)
+    plt.plot(v_stall, wing_surface)
+    plt.show()
+
