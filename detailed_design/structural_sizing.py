@@ -494,7 +494,7 @@ class Fuselage:
 thickness = 1 * 10 ** -3
 
 AR = 12
-S = 1.25
+S = 0.6
 mach = 0.1
 moment = 150
 alu = Material(1600, 180, 250, 70, 70, 1.2)
@@ -502,7 +502,7 @@ alu = Material(1600, 180, 250, 70, 70, 1.2)
 
 
 wing = Wing(S, AR, mach, airfoil, thickness, alu, 16)
-wing.wing_main(False)
+wing.wing_main(True)
 print(wing.tip_chord)
 print(wing.root_chord)
 print(wing.wing_span)
@@ -511,3 +511,5 @@ print(wing.total_volume)
 print(wing.taper_ratio)
 print(wing.le_tip)
 print(wing.mean_aerodynamic_chord)
+print(wing.chord(wing.wing_span / 2 - 0.868))
+
