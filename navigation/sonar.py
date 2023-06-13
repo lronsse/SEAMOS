@@ -11,6 +11,10 @@ pixel_brightness_threshold = 6.5e-02
 #"location": [0, 15, -1],
 #"rotation": [0.0, 0.0, -90]
 
+# Json passing across under the system
+#"location": [0, -1, -3],
+#"rotation": [0.0, 0.0, 30.0]
+
 #### GET SONAR CONFIG
 scenario = "ExampleLevel-HoveringSonar"
 config = holoocean.packagemanager.get_scenario(scenario)
@@ -25,7 +29,7 @@ binsA = config['AzimuthBins']
 
 #### RUN SIMULATION
 def array_to_image(array, name):
-
+# Converts and array of data from the sonar into an image
     array[array < 0 ] = 0
 
 
@@ -41,6 +45,7 @@ def array_to_image(array, name):
     data.save('images/' + name + '.png')
 
 def seaweed_recognition_scaling(array):
+# Image analysis by multiplying the brightness of a pixel with the distance from the vehicle
     new = np.zeros(np.shape(array))
     for i in range(np.shape(array)[0]):
         for j in range(np.shape(array)[1]):
@@ -48,6 +53,7 @@ def seaweed_recognition_scaling(array):
     return new
 
 def seaweed_recognition_first_point(array):
+# Creates an array where each columns has only one bright pixel and that is the first pixel above some threshold
     new_image = np.zeros(np.shape(array))
     point_array = np.zeros(np.shape(array)[1])
     for i in range(np.shape(array)[1]):
@@ -63,6 +69,7 @@ def seaweed_recognition_first_point(array):
     return new_image, point_array
 
 def square_to_fan(array):
+# Converts the rays of the sonar into a fan like thing
     x = np.zeros(len(array))
     y = np.zeros(len(array))
     i = 0
@@ -71,7 +78,7 @@ def square_to_fan(array):
         y[i] = -array[i]*np.cos(alpha)
         x[i] = array[i] * np.sin(alpha)
         i += 1
-
+    # Sorts the x values descending and y together with them
     arr1inds = x.argsort()
     x_out = x[arr1inds[::-1]]
     y_out = y[arr1inds[::-1]]
@@ -79,6 +86,7 @@ def square_to_fan(array):
     return x_out, y_out
 
 def polyfit(x, y, degree):
+    # Get parameters for a linear fit of the sonar data
     results = {}
 
     coeffs = np.polyfit(x, y, degree)
@@ -96,7 +104,11 @@ def polyfit(x, y, degree):
     results['determination'] = ssreg / sstot
 
     return results['determination']
+
 def av_corrected(x, y):
+    # Remove all values above the average
+    coeff_y = 4
+    y = y/ coeff_y
     average = np.average(y)
     y_corrected = []
     x_corrected = []
@@ -111,97 +123,116 @@ def av_corrected(x, y):
     return x_corrected, y_corrected, n, average
 
 def split_domain(m, x, y):
+    # Split the domain into smaller one a create values to create separate plots for every of them.
+    # Also average of every small domain to get the distance
+    # And whether the mean squared error (mse) and the number of points passing the 'average test' is good enough to plot it
+    # -> reason to believe the system is there
+
     line_size = 20
     mse_cutoff = 0.5
     n_cutoff = 10
     should_plot = np.zeros(m)
+    midpoints = np.zeros(m)
     output_line = np.zeros((m, 2, line_size))
     x_corrected0, y_corrected0, n, average = av_corrected(x, y)
     for i in range(m):
         left_bound = int(len(x)*i/m)
         right_bound = int(len(x)*(i+1)/m-1)
-
         x_use = x[left_bound: right_bound]
         y_use = y[left_bound: right_bound]
+
         #print(i, x[0], x[-1], left_bound, right_bound, x_use[0], x_use[-1])
         x_corrected, y_corrected, n, average = av_corrected(x_use, y_use)
         a, b, r, p, std = scipy.stats.linregress(x_corrected, y_corrected)
         y_fit = a * x_corrected + b
         mse = np.square(y_fit - y_corrected).mean()
-        print(i, average, mse, n)
+        midpoints[i] = y_corrected.mean()
+        #print(i, average, mse, n)
         if mse < mse_cutoff and n > n_cutoff:
             should_plot[i] = 1
 
         xseq = np.linspace(x_use[0], x_use[-1], num=line_size)
         yseq =  b + a * xseq
+
         for k in range(line_size):
             output_line[i, 0, k] = xseq[k]
             output_line[i, 1, k] = yseq[k]
-    return output_line, x_corrected0, y_corrected0, should_plot
+    return output_line, x_corrected0, y_corrected0, should_plot, midpoints
+
+def rot2eul(rotation_matrix):
+    # Matrix rotation
+    beta = -np.arcsin(rotation_matrix[2, 0])
+    alpha = np.arctan2(rotation_matrix[2, 1] / np.cos(beta), rotation_matrix[2, 2] / np.cos(beta))
+    gamma = np.arctan2(rotation_matrix[1, 0] / np.cos(beta), rotation_matrix[0, 0] / np.cos(beta))
+    return np.array((alpha, beta, gamma)) / np.pi * 180
+
+def position():
+    # Getting position of the drone
+    truth_state = state['PoseSensor']
+    truth_xy_states = [[], []]
+    truth_titles = ["pos z", "vel", "roll", "pitch", "yaw"]
+    truth_states = [[] for _ in range(len(truth_titles))]
+    truth_xy_states[0].append(truth_state[0, 3])
+    truth_xy_states[1].append(truth_state[1, 3])
+    truth_states[0].append(truth_state[2, 3])
+    x = truth_xy_states[0]
+    y = truth_xy_states[1]
+    z = truth_states[0]
+    velocities = state['VelocitySensor']
+    truth_states[1].append((velocities[0] ** 2 + velocities[1] ** 2 + velocities[2] ** 2) ** 0.5)
+
+    truth_euler = rot2eul(truth_state[0:3, 0:3])
+    truth_states[2].append(truth_euler[0])
+    truth_states[3].append(truth_euler[1])
+    truth_states[4].append(truth_euler[2])
+
+    alpha = truth_states[2]
+    beta = truth_states[3]
+    gamma = truth_states[4]
+
+    return x, y, z, alpha, beta, gamma
 
 
+# Cutoffs for the mean squared error and number of points that have to pass the 'average test' to decide that there is a system there
 mse_cutoff = 10
 n_cutoff = 28
+
+# Direction of motion
 command = np.array([0,0,0,0,10,10,10,10])
+
+# Start simulation
 with holoocean.make(scenario) as env:
     for i in range(3000):
         env.act("auv0", command)
         state = env.tick()
 
         if 'ImagingSonar' in state:
+            # Get a fan shaped array from sonar
             sonar_image = state['ImagingSonar']
             adjusted_image, point_array = seaweed_recognition_first_point(sonar_image)
-            #print(adjusted_image)
             array_to_image(sonar_image, "original" + str(i))
             array_to_image(adjusted_image, "adjusted" + str(i))
             x, y = square_to_fan(point_array)
 
-            # Initialize layout
-            output, x_corrected, y_corrected, should_plot = split_domain(5, x, y)
+            #Split domain and plot
+            output, x_corrected, y_corrected, should_plot, midpoints = split_domain(5, x, y)
             fig, ax = plt.subplots(figsize=(9, 6))
             plt.xlim([-100, 100])
-            plt.ylim([0, 100])
+            plt.ylim([-100, 100])
             print(should_plot)
             for k in range(len(output)):
                 if should_plot[k] == 1:
                     plt.plot(output[k,0], output[k,1], color='orange')
-                #print(i, output[i,0], output[i,1])
+                    print(should_plot* midpoints)
+
             ax.scatter(x_corrected, y_corrected, s=60, alpha=0.7, edgecolors="k")
+            #x, y, z, roll, pitch, yaw = position()
 
 
-            plt.savefig('images/plot'+ str(i))
+
+            plt.savefig('images/plot' + str(i))
             time.sleep(0.2)
             plt.close()
-
-            #x_corrected, y_corrected, n, average = av_corrected(x, y)
-
-            # Add scatterplot
-            #ax.scatter(x_corrected, y_corrected, s=60, alpha=0.7, edgecolors="k")
-
-            #a, b, r, p, std = scipy.stats.linregress(x_corrected, y_corrected)
-            #y_fit = a * x_corrected + b
-
-            #mse = np.square(y_fit - y_corrected).mean()
-            #rsq = polyfit(x, y, 1)
-            #print(i, average, mse, n)
-
-
-            # Create sequence of 100 numbers from 0 to 100
-            #xseq = np.linspace(min(x), max(x), num=100)
-
-
-
-            # Plot regression line
-
-
-            #if mse < mse_cutoff and n >= n_cutoff:
-            #    plt.title('Sth can be seen')
-            #else:
-            #    plt.title('Not really')
-
-
-            #time.sleep(0.5)
-            #plt.close()
 
 
 print("Finished Simulation!")
