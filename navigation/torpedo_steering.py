@@ -3,8 +3,13 @@ import numpy as np
 from pynput import keyboard
 
 pressed_keys = list()
-speed = 100
-force = 1000
+speed = 25
+force = 25
+
+truth_titles = ["pos z", "vel", "roll", "pitch", "yaw"]
+
+truth_xy_states = [[], []]
+truth_states = [[] for _ in range(len(truth_titles))]
 
 def on_press(key):
     global pressed_keys
@@ -23,29 +28,34 @@ listener = keyboard.Listener(
 listener.start()
 
 def parse_keys(keys, val, speed):
-    command = np.zeros(5)
+    command = np.zeros(8)
     if 'i' in keys:
-        command[[0]] -= val
-        command[[2]] += val
+        command[0:4] += val
     if 'k' in keys:
-        command[[0]] += val
-        command[[2]] -= val
+        command[0:4] -= val
     if 'j' in keys:
-        command[[1]] -= val
-        command[[3]] += val
+        command[[4, 7]] += val
+        command[[5, 6]] -= val
     if 'l' in keys:
-        command[[1]] += val
-        command[[3]] -= val
+        command[[4, 7]] -= val
+        command[[5, 6]] += val
 
-    if 'y' in keys:
-        command[[4]] += speed
-    if 'h' in keys:
-        command[[4]] -= speed
+    if 'w' in keys:
+        command[4:8] += val
+    if 's' in keys:
+        command[4:8] -= val
+    if 'a' in keys:
+        command[[4, 6]] += val
+        command[[5, 7]] -= val
+    if 'd' in keys:
+        command[[4, 6]] -= val
+        command[[5, 7]] += val
 
 
     return command
+scenario = "ExampleLevel-HoveringSonar"
 
-with holoocean.make("SimpleUnderwater-Torpedo") as env:
+with holoocean.make(scenario) as env:
 #with holoocean.make("Dam-Hovering") as env:
     while True:
         if 'q' in pressed_keys:
@@ -55,3 +65,11 @@ with holoocean.make("SimpleUnderwater-Torpedo") as env:
         #send to holoocean
         env.act("auv0", command)
         state = env.tick()
+
+        truth_state = state['PoseSensor']
+
+        print(truth_state[0, 3])
+        # truth_xy_states[1].append(truth_state[1, 3])
+        # truth_states[0].append(truth_state[2, 3])
+        #
+        # print(truth_xy_states[0])
