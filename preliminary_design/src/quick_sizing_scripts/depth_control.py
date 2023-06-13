@@ -36,10 +36,6 @@ def thrust_req(sys_m,a,rho,V):
     return T
 
 
-
-
-
-
 def thruster_battery_mass(T,thruster_thrust,mission_t,Ed,thruster_m,thruster_power):
     n_t = np.ceil(T / thruster_thrust) #number of thrusters
     thrust_battery_m = (thruster_power*mission_t)/Ed
