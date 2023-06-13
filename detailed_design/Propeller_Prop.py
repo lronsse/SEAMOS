@@ -147,3 +147,8 @@ if __name__ == '__main__':
         plt.ylabel(pars[1])
         plt.legend()
         plt.show()
+
+    study = VerticalPropulsion(**env['Submerged'])
+    print(study.drag(1.0))
+    print(study.drag(5.0))
+    print(study.drag(10.0))
