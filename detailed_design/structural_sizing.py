@@ -32,25 +32,8 @@ rho_water = 1023.56
 airfoil = '2412'
 
 
-
-
 class Material:
     def __init__(self, rho, sig_yld, sig_ult, E, G, nu):  # todo: create dictionary
-        """
-        Initiate variable of type material
-        :param rho: Density of the material [kg/m^3]
-        :type rho: float
-        :param sig_yld: Yield strength of the material [N/m^2]
-        :type sig_yld: float
-        :param sig_ult: Ultimate strength of the material [N/m^2]
-        :type sig_ult: float
-        :param E: The elastic modules [N/m^2]
-        :type E: float
-        :param G: Shear modules [N/m^2]
-        :type G: float
-        :param nu: The Poisson's ratio of the material
-        :type nu: float
-        """
         self.rho = rho
         self.sig_yld = sig_yld
 
@@ -58,7 +41,6 @@ class Material:
         self.E = E
         self.G = G
         self.nu = nu
-
 
     def mass(self, volume):
         """
@@ -89,6 +71,7 @@ class Wing:
         :param spar_front: The percentage of the cord where the front spar is
         :type spar_front: float
         """
+        self.tail_area = None
         self.le_tip = None
         self.first_moment_of_area = None
         self.plane_mass = plane_mass
@@ -417,6 +400,59 @@ class Wing:
         self.total_volume = np.average(volume_array) * self.wing_span
         return self.total_volume
 
+    def tail_sizing(self, tail_arm, tail_taper_ratio):
+        Vv = 0.03
+        Vh = 0.35
+        AR_tail = (2 / 3) * self.aspect_ratio
+        Sh = (0.85 * Vh * self.mean_aerodynamic_chord * self.wing_area) / tail_arm
+        Sv = (0.85 * Vv * self.wing_span * self.wing_area) / tail_arm
+        S_projected_v = 0.33 * Sv
+        S_projected_h = Sv - S_projected_v
+        tail_anhedral = np.degrees(np.arctan(np.sqrt(S_projected_v / Sh)))
+        self.tail_area = 0.5 * (Sh / (np.cos(np.radians(tail_anhedral))) ** 2)
+        self.tail_span = np.sqrt(AR_tail * self.tail_area)
+        self.tail_root_chord = (2 * self.tail_area) / ((1 + tail_taper_ratio) * self.tail_span)  #
+        self.tail_tip_chord = self.tail_root_chord * tail_taper_ratio  #
+        self.tail_mac = (2 / 3) * (self.tail_root_chord) * (1 + tail_taper_ratio + tail_taper_ratio ** 2) / (
+                    1 + tail_taper_ratio)  #
+        self.tail_qc_sweep = np.degrees(np.arctan(
+            (((np.tan(0)) - (4 / AR_tail) * ((-75 / 100) * ((1 - tail_taper_ratio) / (1 + tail_taper_ratio)))))))  #
+        return self.tail_area, self.tail_span, self.tail_root_chord, self.tail_tip_chord, self.tail_mac, self.tail_qc_sweep, tail_anhedral
+
+    def plot_tail(self):
+        n_points = 100
+        y = np.linspace(0, self.tail_span / 2, n_points)
+        sweep_quarter_chord_rad = np.radians(self.tail_qc_sweep)
+        c_r = np.linspace(0, self.tail_root_chord, n_points)
+        x_quarter_root = self.tail_root_chord / 4
+        x_quarter_tip = x_quarter_root + self.tail_span / 2 * np.tan(sweep_quarter_chord_rad)
+        x_quarter = x_quarter_root + y * np.tan(sweep_quarter_chord_rad)
+        le_tip = x_quarter_tip - 0.25 * self.tail_tip_chord
+        te_tip = x_quarter_tip + 0.75 * self.tail_tip_chord
+        c_t = np.linspace(le_tip, te_tip, n_points)
+        leading_edge = le_tip / (self.tail_span / 2) * y
+        trailing_edge = self.tail_root_chord - (self.tail_root_chord - te_tip) / (self.tail_span / 2) * y
+
+        y_lemac = self.tail_span / 2 * (self.tail_root_chord - self.tail_mac) / (self.tail_root_chord - self.tail_tip_chord)
+        leading_edge_mean_aerodynamic_chord = le_tip / (self.tail_span / 2) * y_lemac
+        x_mean_aerodynamic_chord = np.linspace(leading_edge_mean_aerodynamic_chord, leading_edge_mean_aerodynamic_chord + self.tail_mac, n_points)
+
+        plt.plot(c_r, np.zeros(n_points), color='black')
+        plt.plot(c_t, np.ones(n_points) * self.tail_span / 2, color='black')
+        plt.plot(leading_edge, y, color='black')
+        plt.plot(trailing_edge, y, color='black')
+        plt.plot(x_quarter, y, 'r--', label='Quarter Chord')
+        plt.plot(x_mean_aerodynamic_chord, np.ones(n_points) * y_lemac, 'r', label='Mean Aerodynamic Chord')
+        plt.plot()
+        plt.xlabel('Chordwise position (m)')
+        plt.ylabel('Spanwise position (m)')
+        plt.title('Wing Planform')
+        plt.legend()
+        plt.axis('equal')
+        plt.grid(True)
+        plt.show()
+
+
     def wing_main(self, plot=False):
         self.planform()
         self.plot_planform()
@@ -437,6 +473,8 @@ class Wing:
         self.shear_stress_shear = self.calculate_shear_stress(self.second_moment_of_area, self.first_moment_of_area)
         self.shear_stress = self.shear_stress_shear + self.shear_stress_torsion
         self.total_volume = self.wing_total_volume(self.chord_array)
+        self.tail_sizing(0.75, 0.5)
+        self.plot_tail()
         return
 
 
@@ -494,7 +532,7 @@ class Fuselage:
 thickness = 1 * 10 ** -3
 
 AR = 12
-S = 0.6
+S = 0.7
 mach = 0.1
 moment = 150
 alu = Material(1600, 180, 250, 70, 70, 1.2)
@@ -512,4 +550,5 @@ print(wing.taper_ratio)
 print(wing.le_tip)
 print(wing.mean_aerodynamic_chord)
 print(wing.chord(wing.wing_span / 2 - 0.868))
+print(f'Tail: Span ({wing.tail_span}), Area ({wing.tail_area}), ')
 
