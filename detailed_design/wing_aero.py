@@ -19,8 +19,10 @@ tail_chord_root = wing.tail_root_chord
 tail_tip_chord = wing.tail_tip_chord
 tail_span = wing.tail_span
 actual_length_of_tail_surfaces = tail_span / 2 / np.cos(30 * np.pi / 180)
-moment_arm = 0.8
+moment_arm = wing.l_opt
+x_ac=0.6
 
+print(tail_chord_root)
 # Create the airfoil object
 airfoil = asb.Airfoil(
     name="NACA2412",
@@ -37,7 +39,7 @@ wing = asb.Wing(
     xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[0-0.25, 0, 0],  # Position of the leading edge
+            xyz_le=[0-x_ac, 0, 0],  # Position of the leading edge
             chord=wing.root_chord,
             twist=0,  # In degrees
             airfoil=airfoil,
@@ -45,7 +47,7 @@ wing = asb.Wing(
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[wing.le_tip- 0.25, wing.wing_span / 2, 0],  # Position of the leading edge
+            xyz_le=[moment_arm-wing.le_tip, wing.wing_span / 2, 0],  # Position of the leading edge
             chord=wing.tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil,

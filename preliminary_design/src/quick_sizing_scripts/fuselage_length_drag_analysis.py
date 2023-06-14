@@ -1,11 +1,14 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import structural_sizing as ss
+
+wing=ss.wing
 
 # Constants
-V_water = 1  # velocity [m/s]
+V_water = 2 # velocity [m/s]
 rho_W = 1023  # density of water [kg/m^3]
-slender_ratios = np.arange(5, 12, 1)  # list of slenderness ratios to test
+slender_ratios = np.arange(3, 12, 1)  # list of slenderness ratios to test
 lengths = np.arange(0.5, 3, 0.5)  # list of lengths to test
 AR = 12
 taper_ratio = 0.4
@@ -19,6 +22,8 @@ def calculate_drag(length, slender):
     eta_hull = 5  # 3-6 depending on the type of hull
     A_front = (4 * np.pi * (D_hull / 2) ** 2) / 2  # Front area of hull (assuming semi-sphere) [m^2]
     Cd_water = 0.02  # from literature
+    S_wing=wing.wing_area
+    S_tail=wing.tail_area
 
     # Reynolds number calculation
     mu_water = 0.00126
@@ -44,11 +49,11 @@ def calculate_drag(length, slender):
 
     # Wing+tail skin friction
     def control_surface_friction():
-        b = np.sqrt(AR * S)
-        c_root = (2 * S) / ((1 + taper_ratio) * b)
+        b = np.sqrt(AR * S_wing)
+        c_root = (2 * S_wing) / ((1 + taper_ratio) * b)
         overlapped_area = 0.5 * (2 * c_root) * (b / 2) - (0.5 * b / 2 * (2 * c_root - D_hull))
-        new_area = S - overlapped_area
-        A_plan = new_area + (0.146 * 3)  # Swept overlapped Wing area + tail area
+        new_area = S_wing - overlapped_area
+        A_plan = new_area + (S_tail * 3)  # Swept overlapped Wing area + tail area
         R_surface = 0.5 * rho_W * V_water ** 2 * A_plan * Cd_water
         return R_surface
 
@@ -79,13 +84,23 @@ for i, length in enumerate(lengths):
         # print(f"Wing+Tail Skin Friction Resistance: {wingtail_friction_drag}")
         # print("-" * 20)
 
+# Input values for length and diameter
+input_length = 0.84
+input_diameter = 0.18
+
+print(input_length/input_diameter)
+
+# Find the corresponding indices in the arrays
+length_index = np.where(lengths == input_length)[0]
+diameter_index = np.where(slender_ratios == input_length / input_diameter)[0]
+
 # Plotting heatmap with increased resolution
 fig, ax = plt.subplots()
 im = ax.imshow(drag_values, cmap='coolwarm', extent=[slender_ratios[0], slender_ratios[-1], lengths[0], lengths[-1]], aspect='auto',interpolation="bilinear")
 cbar = fig.colorbar(im)
-cbar.set_label('Drag')
+cbar.set_label('Drag [N]')
 ax.set_xlabel('Slenderness Ratio')
-ax.set_ylabel('Length')
+ax.set_ylabel('Length [m]')
 ax.set_title('Drag Heatmap for Different Lengths and Slenderness Ratios')
 
 # Add diameter annotations to the heatmap
@@ -93,6 +108,9 @@ for i in range(len(lengths)):
     for j in range(len(slender_ratios)):
         diameter = lengths[i] / slender_ratios[j]
         ax.text(slender_ratios[j], lengths[i], f'{diameter:.2f}', ha='center', va='center', color='white')
+
+# Plot the input point
+ax.plot(slender_ratios[diameter_index], lengths[length_index], 'ro', markersize=10)
 
 plt.show()
 

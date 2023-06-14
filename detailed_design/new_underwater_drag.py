@@ -2,6 +2,7 @@ import numpy as np
 import math
 from structural_sizing import Wing
 
+# wing=ss.Wing
 ##Drag estimation method from Submarine Hydrodynamics textbook page 107
 
 #Constants

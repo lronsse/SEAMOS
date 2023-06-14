@@ -1,43 +1,60 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from structural_sizing import Wing
+import structural_sizing as ss
 
+wing = ss.wing
 
 ## Constants
-Vh_V = 1
-x_ac = 0.26 #
+Vh_V = 0.8
+x_ac = 0.5
 Mach = 0.1
 beta = np.sqrt(1-Mach**2)
-MAC = Wing.mean_aerodynamic_chord
+beta_low=np.sqrt(1-0.0437318**2)
+MAC = wing.mean_aerodynamic_chord
 
 eta_tail = 0.95
 eta_wing = 0.95
 
-x_cg_fw = 0.45#0.5585
+x_cg_fw = 0.45 #0.5585
 x_cg_aft = 0.55#0.5694
 
-A = 12
-Ah = 4 #(2/3)*A # Not sure
-half_sweep_wing = 2 #deg
-half_sweep_tail = 4.76 #deg
-b_f = 0.3 #fuselage diameter
-b = 3.87 #wingspan
-S = 1.25 #surface area
-Sh = 11.73 #tail area
-S_net = S - 7.36 # Kinda sketch (I did S_covered = root chord * b_f :-/)
-taper = 0.4 # wing
 
-print("OMG")
-print((2*S)/((1+taper)*b))
-l_h = 0.45 # Not accurate *******
+tail_taper_ratio=0.4
+A = wing.aspect_ratio
+Ah = 4 #tail AR
+AR_tail=4
+half_sweep_wing = np.arctan(np.tan(wing.sweep_quarter_chord) - (4 / A) * (50 - 25) / 100 * (
+                    1 - wing.taper_ratio) / (1 + wing.taper_ratio))
+half_sweep_tail = np.arctan(np.tan(0) - (4 / AR_tail) * (50 - 100) / 100 * (
+                    1 - tail_taper_ratio) / (1 + tail_taper_ratio))
+b_f = 0.2 #Fuselage diameter [m]
+b =wing.wing_span #wingspan [m]
+S =  0.75 #wing surface area [m^2]
+Sh = wing.tail_area #wing surface area [m^2]
+S_net = S - (wing.root_chord*b_f) # Kinda sketch (I did S_covered = root chord * b_f :-/)
+taper = wing.taper_ratio # wing
+
+l_h = wing.tail_arm # Not accurate *******
 r = 2*l_h/b
-m_b_2 = 4.483
+m_b_2 = 0.2
 m = m_b_2 * 2/b
-B_p = 3 # Number of propeller blades per propeller
+B_p = 2 # Number of propeller blades per propeller
+l_f=0.84
+delta=wing.sweep_quarter_chord
+CL_zero=0.2
+cm0_airfoil=-0.068
+CL_a_dash_h_lowv=(2*np.pi*A / (2 + np.sqrt(4 + (A*beta_low/eta_wing)**2 * (1 + (np.tan((half_sweep_wing))/beta_low)**2 ))))* (1 + 2.15*b_f/b) * S_net/S + 0.5*np.pi*b_f**2/S
 
-Cm_ac = -0.3 # Not accurate ******
-# CL_h = -0.35*Ah**(1/3) # Fixed tail
-CL_h = -1 # Full moving tail
+cmac_wing=cm0_airfoil*(wing.aspect_ratio*np.cos(delta)**2/(wing.aspect_ratio+2*np.cos(delta)))
+cmac_fuselage=-1.8*(1-(2.5*b_f/l_f))*(np.pi*b_f*b_f*l_f)/(4*S*wing.mean_aerodynamic_chord)*(CL_zero/CL_a_dash_h_lowv)
+
+
+Cm_ac = cmac_wing+cmac_fuselage
+CL_h = -1 #-0.35*Ah**(1/3) # Fixed tail
+print(CL_h)
+print("AHHHHH")
+
+
 
 def Sh_S_stability(x_cg, CL_a_h, CL_a_Aminh, downwash, l_h=l_h, MAC=MAC, Vh_V=Vh_V, x_ac=x_ac, safety=0.05):
     """x_cg is the free variable"""
@@ -53,7 +70,7 @@ def Sh_S_controllability(x_cg, CL_h, CL_a_Aminh, l_h=l_h, MAC=MAC, Vh_V=Vh_V, x_
 
 ## Parameter functions
 def CL_a_DATCOM(A, eta, half_sweep, beta):
-    return 2*np.pi*A / (2 + np.sqrt(4 + (A*beta/eta)**2 * (1 + (np.tan(np.deg2rad(half_sweep))/beta)**2 )))
+    return 2*np.pi*A / (2 + np.sqrt(4 + (A*beta/eta)**2 * (1 + (np.tan((half_sweep))/beta)**2 )))
 
 def CL_a_Aminh(CL_a_w, bf, b, S_net, S):
     return CL_a_w * (1 + 2.15*b_f/b) * S_net/S + 0.5*np.pi*bf**2/S
@@ -61,48 +78,13 @@ def CL_a_Aminh(CL_a_w, bf, b, S_net, S):
 def downwash(CL_a_w, A=A, taper=taper, r=r, m=m, B_p=B_p):
     return (1.75 * CL_a_w / (np.pi * A * (taper*r)**0.25 * (1+np.abs(m)))) * (1 - 0.012 * B_p)
 
-def tail_area_S(CLah,Cla_dash_h,deda,lh,c,VhV,xac,SM,S):
-    ShS=(1/((CLah/Cla_dash_h)*(1-deda)*(lh/c)*VhV**2))-((xac-SM)/((CLah/Cla_dash_h)*(1-deda)*(lh/c)*VhV**2))
-    Sh=ShS*S
-    return Sh
-
-# CLah=CL_a_DATCOM(A,eta_wing,half_sweep_wing,beta)
-# Cla_dash_h=CL_a_Aminh_stab = CL_a_Aminh(CLah, b_f, b, S_net, S)
-# deda = downwash(Cla_dash_h)
-SM=0.05
-lh=1.5
-xac=0.55
-print("ahhhh")
-# print(tail_area_S(CLah,Cla_dash_h,deda,lh,MAC,Vh_V,xac,SM,S))
-
-
 
 CL_a_w = CL_a_DATCOM(A, eta_wing, half_sweep_wing, beta)
-CL_a_w_low = CL_a_DATCOM(A, eta_wing, half_sweep_wing, np.sqrt(1-0.171**2)) # Entered take-off speed here (take-off is limiting for controllability, was too lazy to make new Mach variable)
+CL_a_w_low = CL_a_DATCOM(A, eta_wing, half_sweep_wing, np.sqrt(1-0.0437318**2)) # Entered take-off speed here (take-off is limiting for controllability, was too lazy to make new Mach variable)
 CL_a_h = CL_a_DATCOM(Ah, eta_tail, half_sweep_tail, beta)
 dw = downwash(CL_a_w)
 CL_a_Aminh_stab = CL_a_Aminh(CL_a_w, b_f, b, S_net, S)
 CL_a_Aminh_cont = CL_a_Aminh(CL_a_w_low, b_f, b, S_net, S)
-
-
-print(CL_a_Aminh_cont)
-print(CL_a_Aminh_stab)
-print(CL_a_h)
-
-
-def tail_area_S(CLah,Cla_dash_h,deda,lh,c,VhV,xac,SM,S):
-    ShS=(1/((CLah/Cla_dash_h)*(1-deda)*(lh/c)*VhV**2))-((xac-SM)/((CLah/Cla_dash_h)*(1-deda)*(lh/c)*VhV**2))
-    Sh=ShS*S
-    return Sh
-
-CLadashh=5.65
-CLah=4.722
-print("AHHHUSETHIS")
-area_tail=tail_area_S(CLah,CLadashh,dw,lh,MAC,Vh_V,xac,SM,S)
-print(area_tail)
-span_tail=np.sqrt(8*(area_tail))
-print(span_tail)
-# print(Sh_S_stability(0.5,4.722,5.65,dw(4.722),1.5,MAC,VhV,0.55,0.05))
 
 
 stability_params = {'CL_a_h': CL_a_h,
@@ -137,4 +119,4 @@ plt.ylabel(r'$S_h / S$', fontsize=15)
 plt.gca().set_aspect(2)
 plt.legend(fontsize=15)
 plt.show()
-# print(downwash(CL_a_w))
+print(downwash(CL_a_w))
