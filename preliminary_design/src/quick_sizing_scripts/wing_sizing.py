@@ -349,7 +349,7 @@ if __name__ == '__main__':
     v_stall = np.linspace(10, 25)
     wing_surface = []
     for v in v_stall:
-        puffin = Configuration('puffin', v, 20, 1.356, 0.02, 0.5, 0.8, 0.8, 12, 4000, 6000, 14.352, 1, False, 1, 15, 20, 1, 6.5)
+        puffin = Configuration('puffin', v, 20, 1.356, 0.02, 0.5, 0.8, 0.8, 12, 4000, 6000, 17, 1, False, 1, 15, 20, 1, 6.5)
         wing_surface.append(puffin.wing_surface)
 
     plt.plot(v_stall, wing_surface)

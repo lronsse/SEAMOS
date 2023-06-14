@@ -111,8 +111,8 @@ center_fuse = make_fuselage(
 )
 # Define the aircraft
 aircraft = asb.Airplane(
-    wings=[wing, tail, v_tail],
-    fuselages=[center_fuse],
+    wings=[wing],
+    #fuselages=[center_fuse],
 )
 
 aircraft.draw()

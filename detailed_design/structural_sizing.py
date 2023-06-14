@@ -535,7 +535,7 @@ class Fuselage:
 thickness = 1 * 10 ** -3
 
 AR = 12
-S = 0.7
+S = 0.75
 mach = 0.1
 moment = 150
 alu = Material(1600, 180, 250, 70, 70, 1.2)
