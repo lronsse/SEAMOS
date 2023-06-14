@@ -402,8 +402,10 @@ class Wing:
 
     def tail_sizing(self, tail_arm, tail_taper_ratio):
         Vv = 0.03
-        Vh = 0.35
-        AR_tail = (2 / 3) * self.aspect_ratio
+        Vh = 0.35 #0.35,0.6
+        K_c=1 #1-1.4, 1 for conical shape tail [-]
+        Df = 0.3 # diameter of fuselage [m]
+        AR_tail = 4 #(2 / 3) * self.aspect_ratio
         Sh = (0.85 * Vh * self.mean_aerodynamic_chord * self.wing_area) / tail_arm
         Sv = (0.85 * Vv * self.wing_span * self.wing_area) / tail_arm
         S_projected_v = 0.33 * Sv
@@ -417,7 +419,8 @@ class Wing:
                     1 + tail_taper_ratio)  #
         self.tail_qc_sweep = np.degrees(np.arctan(
             (((np.tan(0)) - (4 / AR_tail) * ((-75 / 100) * ((1 - tail_taper_ratio) / (1 + tail_taper_ratio)))))))  #
-        return self.tail_area, self.tail_span, self.tail_root_chord, self.tail_tip_chord, self.tail_mac, self.tail_qc_sweep, tail_anhedral
+        self.l_opt=K_c*np.sqrt((4*self.mean_aerodynamic_chord*self.tail_area*Vh)/(np.pi*Df))
+        return self.tail_area, self.tail_span, self.tail_root_chord, self.tail_tip_chord, self.tail_mac, self.tail_qc_sweep, tail_anhedral,self.l_opt
 
     def plot_tail(self):
         n_points = 100
@@ -446,7 +449,7 @@ class Wing:
         plt.plot()
         plt.xlabel('Chordwise position (m)')
         plt.ylabel('Spanwise position (m)')
-        plt.title('Wing Planform')
+        plt.title('Tail Planform')
         plt.legend()
         plt.axis('equal')
         plt.grid(True)
@@ -550,5 +553,6 @@ print(wing.taper_ratio)
 print(wing.le_tip)
 print(wing.mean_aerodynamic_chord)
 print(wing.chord(wing.wing_span / 2 - 0.868))
-print(f'Tail: Span ({wing.tail_span}), Area ({wing.tail_area}), ')
+print(f'Tail: Span ({wing.tail_span}), Area ({wing.tail_area}), l_opt ({wing.l_opt}), root chord ({wing.tail_root_chord}),tip chord ({wing.tail_tip_chord})')
+
 
