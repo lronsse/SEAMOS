@@ -60,7 +60,7 @@ tail = asb.Wing(
     xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[0.5 - tail_chord_root, 0, -0.1],  # Position of the leading edge
+            xyz_le=[0.8 - tail_chord_root, 0, -0.1],  # Position of the leading edge
             chord=tail_chord_root,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
@@ -68,7 +68,7 @@ tail = asb.Wing(
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[0.5-tail_tip_chord, tail_span / 2, -actual_length_of_tail_surfaces * np.sin(30 * np.pi / 180) - 0.1],  # Position of the leading edge
+            xyz_le=[0.8-tail_tip_chord, tail_span / 2, -actual_length_of_tail_surfaces * np.sin(30 * np.pi / 180) - 0.1],  # Position of the leading edge
             chord=tail_tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
@@ -83,7 +83,7 @@ v_tail = asb.Wing(
     xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[0.5 - tail_chord_root, 0, -0.1],  # Position of the leading edge
+            xyz_le=[0.8 - tail_chord_root, 0, -0.1],  # Position of the leading edge
             chord=tail_chord_root,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
@@ -91,7 +91,7 @@ v_tail = asb.Wing(
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[0.5-tail_tip_chord, 0, actual_length_of_tail_surfaces - 0.1],  # Position of the leading edge
+            xyz_le=[0.8-tail_tip_chord, 0, actual_length_of_tail_surfaces - 0.1],  # Position of the leading edge
             chord=tail_tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
@@ -103,7 +103,7 @@ v_tail = asb.Wing(
 )
 
 center_fuse = make_fuselage(
-    boom_length=0.5,
+    boom_length=0.8,
     nose_length=0.5,
     fuse_diameter=0.2,
     boom_diameter=0.2,
@@ -111,8 +111,8 @@ center_fuse = make_fuselage(
 )
 # Define the aircraft
 aircraft = asb.Airplane(
-    wings=[wing],
-    #fuselages=[center_fuse],
+    wings=[wing,tail,v_tail],
+    fuselages=[center_fuse],
 )
 
 aircraft.draw()
