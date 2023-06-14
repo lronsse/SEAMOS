@@ -26,10 +26,12 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad, simps
 from scipy.interpolate import interp1d
 
+
 g = 9.81
 n_points = 1000
 rho_water = 1023.56
 airfoil = '2412'
+
 
 
 class Material:
@@ -472,9 +474,7 @@ class Wing:
 
         self.normal_stress_bending = self.calculate_bending_stress(self.second_moment_of_area, self.naca4(self.chord_array)[4])
 
-        self.shear_stress_torsion = self.shear_stress_torsion(moment)
-        self.shear_stress_shear = self.calculate_shear_stress(self.second_moment_of_area, self.first_moment_of_area)
-        self.shear_stress = self.shear_stress_shear + self.shear_stress_torsion
+
         self.total_volume = self.wing_total_volume(self.chord_array)
         self.tail_sizing(0.75, 0.5)
         self.plot_tail()
@@ -541,9 +541,8 @@ moment = 150
 alu = Material(1600, 180, 250, 70, 70, 1.2)
 
 
-
 wing = Wing(S, AR, mach, airfoil, thickness, alu, 16)
-wing.wing_main(True)
+wing.wing_main(False)
 print(wing.tip_chord)
 print(wing.root_chord)
 print(wing.wing_span)
