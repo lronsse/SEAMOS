@@ -71,17 +71,17 @@ for i, length in enumerate(lengths):
         # Store drag value in the array
         drag_values[i, j] = drag
 
-        print(f"Length: {length}, Slenderness Ratio: {slender}")
-        print(f"Total Drag: {drag}")
-        print(f"Drag Coefficient: {Cd}")
-        print(f"Hull Flat Plate Resistance: {RF_flat_drag}")
-        print(f"Hull Form Drag Resistance: {Hull_form_drag_drag}")
-        print(f"Wing+Tail Skin Friction Resistance: {wingtail_friction_drag}")
-        print("-" * 20)
+        # print(f"Length: {length}, Slenderness Ratio: {slender}")
+        # print(f"Total Drag: {drag}")
+        # print(f"Drag Coefficient: {Cd}")
+        # print(f"Hull Flat Plate Resistance: {RF_flat_drag}")
+        # print(f"Hull Form Drag Resistance: {Hull_form_drag_drag}")
+        # print(f"Wing+Tail Skin Friction Resistance: {wingtail_friction_drag}")
+        # print("-" * 20)
 
 # Plotting heatmap with increased resolution
 fig, ax = plt.subplots()
-im = ax.imshow(drag_values, cmap='coolwarm', extent=[slender_ratios[0], slender_ratios[-1], lengths[0], lengths[-1]], aspect='auto', interpolation='bilinear')
+im = ax.imshow(drag_values, cmap='coolwarm', extent=[slender_ratios[0], slender_ratios[-1], lengths[0], lengths[-1]], aspect='auto',interpolation="bilinear")
 cbar = fig.colorbar(im)
 cbar.set_label('Drag')
 ax.set_xlabel('Slenderness Ratio')

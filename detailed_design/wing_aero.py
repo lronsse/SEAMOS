@@ -15,8 +15,11 @@ cl_data = ad.data['CL']
 cd_data = ad.data['CD']
 cm_data = ad.data['Cm']
 
-tail_chord_root = 0.127
-
+tail_chord_root = wing.tail_root_chord
+tail_tip_chord = wing.tail_tip_chord
+tail_span = wing.tail_span
+actual_length_of_tail_surfaces = tail_span / 2 / np.cos(30 * np.pi / 180)
+moment_arm = 0.8
 
 # Create the airfoil object
 airfoil = asb.Airfoil(
@@ -57,16 +60,16 @@ tail = asb.Wing(
     xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[1.5 - 0.18, 0, -0.1],  # Position of the leading edge
-            chord=0.18,
+            xyz_le=[moment_arm - tail_chord_root, 0.1*np.sin(60 * np.pi / 180), -0.1- 0.1*np.sin(30*np.pi / 180)],  # Position of the leading edge
+            chord=tail_chord_root,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[1.5-0.09, 0.54 * np.sin(60 * np.pi / 180), -0.54 * np.sin(30 * np.pi / 180) - 0.1],  # Position of the leading edge
-            chord=0.09,
+            xyz_le=[moment_arm-tail_tip_chord, tail_span / 2 + 0.1* np.sin(60 * np.pi / 180), -0.1- 0.1*np.sin(30*np.pi / 180) -actual_length_of_tail_surfaces * np.sin(30 * np.pi / 180)],  # Position of the leading edge
+            chord=tail_tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
@@ -77,19 +80,19 @@ tail = asb.Wing(
 )
 
 v_tail = asb.Wing(
-    xyz_le=[0.5, 0, 0],  # Position of the leading edge
+    xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[1.5 - 0.18, 0, 0-0.1],  # Position of the leading edge
-            chord=0.18,
+            xyz_le=[moment_arm - tail_chord_root, 0,0],  # Position of the leading edge
+            chord=tail_chord_root,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[1.5-0.09, 0, 0.54 -0.1],  # Position of the leading edge
-            chord=0.09,
+            xyz_le=[moment_arm-tail_tip_chord, 0, actual_length_of_tail_surfaces],  # Position of the leading edge
+            chord=tail_tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
@@ -100,7 +103,7 @@ v_tail = asb.Wing(
 )
 
 center_fuse = make_fuselage(
-    boom_length=1.5,
+    boom_length=moment_arm,
     nose_length=0.5,
     fuse_diameter=0.2,
     boom_diameter=0.2,
@@ -108,7 +111,7 @@ center_fuse = make_fuselage(
 )
 # Define the aircraft
 aircraft = asb.Airplane(
-    wings=[wing, tail, v_tail],
+    wings=[wing, v_tail, tail],
     fuselages=[center_fuse],
 )
 
@@ -117,6 +120,7 @@ alpha_array = np.arange(-5, 15, 0.5)
 cl_array = []
 cd_array = []
 cm_array = []
+moments = []
 # Define the operating point
 for alpha in alpha_array:
     op_point = asb.OperatingPoint(
@@ -148,13 +152,22 @@ for alpha in alpha_array:
     cl_array.append(aero_solve['CL'])
     cd_array.append(aero_solve['CD'])
     cm_array.append(aero_solve['Cm'])
+    moments.append(aero_solve['m_b'])
+
     print(aero_solve)
     cla_array = []
     # Print the results
     print("Lift coefficient:", aero_solve['CL'])
     print("Drag coefficient:", aero_solve['CD'])
     print("Moment coefficient:", aero_solve['Cm'])
+
+
+
+
     cla_array.append(aero_solve['CLa'])
+
+max_moment = np.max(abs(np.array(moments)))
+
 
 
 plt.subplot(3, 2, 1)
