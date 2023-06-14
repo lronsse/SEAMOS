@@ -15,7 +15,10 @@ cl_data = ad.data['CL']
 cd_data = ad.data['CD']
 cm_data = ad.data['Cm']
 
-tail_chord_root = 0.127
+tail_chord_root = wing.tail_root_chord
+tail_tip_chord = wing.tail_tip_chord
+tail_span = wing.tail_span
+actual_length_of_tail_surfaces = tail_span / 2 / np.cos(30 * np.pi / 180)
 
 
 # Create the airfoil object
@@ -57,16 +60,16 @@ tail = asb.Wing(
     xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[1.5 - 0.18, 0, -0.1],  # Position of the leading edge
-            chord=0.18,
+            xyz_le=[0.5 - tail_chord_root, 0, -0.1],  # Position of the leading edge
+            chord=tail_chord_root,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[1.5-0.09, 0.54 * np.sin(60 * np.pi / 180), -0.54 * np.sin(30 * np.pi / 180) - 0.1],  # Position of the leading edge
-            chord=0.09,
+            xyz_le=[0.5-tail_tip_chord, tail_span / 2, -actual_length_of_tail_surfaces * np.sin(30 * np.pi / 180) - 0.1],  # Position of the leading edge
+            chord=tail_tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
@@ -77,19 +80,19 @@ tail = asb.Wing(
 )
 
 v_tail = asb.Wing(
-    xyz_le=[0.5, 0, 0],  # Position of the leading edge
+    xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[1.5 - 0.18, 0, 0-0.1],  # Position of the leading edge
-            chord=0.18,
+            xyz_le=[0.5 - tail_chord_root, 0, -0.1],  # Position of the leading edge
+            chord=tail_chord_root,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[1.5-0.09, 0, 0.54 -0.1],  # Position of the leading edge
-            chord=0.09,
+            xyz_le=[0.5-tail_tip_chord, 0, actual_length_of_tail_surfaces - 0.1],  # Position of the leading edge
+            chord=tail_tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil_tail,
             num_chordwise=12,
@@ -100,7 +103,7 @@ v_tail = asb.Wing(
 )
 
 center_fuse = make_fuselage(
-    boom_length=1.5,
+    boom_length=0.5,
     nose_length=0.5,
     fuse_diameter=0.2,
     boom_diameter=0.2,
