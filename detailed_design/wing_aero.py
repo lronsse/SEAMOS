@@ -1,6 +1,5 @@
 import aerosandbox as asb
 import aerosandbox.numpy as np
-import Airfoil_Design as ad
 import structural_sizing as ss
 import matplotlib.pyplot as plt
 from fuselage import make_fuselage
@@ -10,22 +9,18 @@ wing = ss.wing
 
 # Define your airfoil data
 
-alpha_data = ad.data.index
-cl_data = ad.data['CL']
-cd_data = ad.data['CD']
-cm_data = ad.data['Cm']
 
 tail_chord_root = wing.tail_root_chord
 tail_tip_chord = wing.tail_tip_chord
 tail_span = wing.tail_span
 actual_length_of_tail_surfaces = tail_span / 2 / np.cos(30 * np.pi / 180)
 moment_arm = wing.l_opt
-x_ac=0.6
+x_ac=0.5
 
 print(tail_chord_root)
 # Create the airfoil object
 airfoil = asb.Airfoil(
-    name="NACA2412",
+    name="NACA8412",
     generate_polars=True
 )
 
@@ -113,7 +108,7 @@ center_fuse = make_fuselage(
 )
 # Define the aircraft
 aircraft = asb.Airplane(
-    wings=[wing],
+    wings=[wing, tail, v_tail],
     fuselages=[center_fuse],
 )
 
@@ -141,7 +136,6 @@ for alpha in alpha_array:
         airplane=aircraft,
         op_point=op_point,
     )
-
 
     aero_solve = aero.run_with_stability_derivatives()
 

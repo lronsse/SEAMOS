@@ -48,15 +48,11 @@ def run_xfoil(naca_number, mach, reynolds, alpha_start, alpha_end, alpha_step):
     airfoil_name = f'naca{naca_number}'
     airfoil_file = f'{airfoil_name}.dat'
 
-    # Download the airfoil file if it doesn't exist
-    if not os.path.isfile(airfoil_file):
-        print(f'Airfoil file {airfoil_file} not found. Downloading...')
-        airfoil_name = download_airfoil(naca_number)
-        airfoil_file = f'{airfoil_name}.dat'
+
 
     # Define the XFOIL commands
     xfoil_commands = f'''
-    LOAD {airfoil_file}
+    NACA {naca_number}
     PANEL
     OPER
     VISC {reynolds}
@@ -109,48 +105,93 @@ mach = 0.1
 reynolds = 500000
 
 alphamin = -5
-alphamax = 25
-delta_alpha = 0.2
-
-filename = f'polarnaca{naca_number}_{delta_alpha}.txt'
+alphamax = 20
+delta_alpha = 0.5
 
 
 
-alpha = np.arange(alphamin+1, alphamax-1, delta_alpha)
+# List of airfoils to compare
+airfoils = ['0412', '2412', '4412', '6412', '8412']
 
-if not os.path.isfile(filename):
-    run_xfoil(naca_number, mach, reynolds, alphamin, alphamax, delta_alpha)
+# Create a dictionary to store the data for each airfoil
+airfoil_data = {}
 
-
-data = read_data(filename)
-data = data.set_index('alpha')
-data = data.interpolate('linear')
-
-# ... your existing code ...
-
-# Define the range of alpha for the quasi-linear part of the lift curve
-alpha_linear_range = np.arange(0, 10, delta_alpha)  # Adjust this range as needed
-
-# Round the alpha values in the DataFrame index and alpha_linear_range to match the precision of your data
-precision = 2  # Adjust this value as needed
-data.index = pd.Series(data.index).round(precision).values
-alpha_linear_range = alpha_linear_range.round(precision)
-
-# Extract the lift coefficients in the linear range
-cl_linear_range = data.loc[alpha_linear_range, 'CL']
-
-# Fit a line to the lift coefficients in the linear range
-slope, intercept = np.polyfit(alpha_linear_range, cl_linear_range, 1)
-
-# Print the lift curve slope
-print(f'Lift curve slope: {slope} per degree')
-
-# Interpolate the drag coefficient at zero lift
-cd0 = np.interp(0, data.index, data['CD'])
-
-# Print the zero-lift drag coefficient
-print(f'Zero-lift drag coefficient (Cd0): {cd0}')
+# Run XFOIL for each airfoil and store the data
+for airfoil in airfoils:
+    filename = f'polarnaca{airfoil}_{delta_alpha}.txt'
+    if not os.path.isfile(filename):
+        run_xfoil(airfoil, mach, reynolds, alphamin, alphamax, delta_alpha)
+    data = read_data(filename)
+    data = data.set_index('alpha')
+    data = data.interpolate('linear')
+    airfoil_data[airfoil] = data
+    # Delete the files
+    os.remove(filename)
+    airfoil_name = f'naca{airfoil}'
+    #os.remove(f'{airfoil_name}.dat')
 
 
+# Plot the aerodynamic coefficients for each airfoil
+for airfoil, data in airfoil_data.items():
+    #plt.figure(figsize=(10, 6))
+    #plt.subplot(3, 2, 1)
+    plt.plot(data.index, data['CL'], label=f'NACA {airfoil}')
+plt.xlabel('Alpha (degrees)')
+plt.ylabel('Lift Coefficient (CL)')
+plt.title('Lift Coefficient vs Alpha')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+for airfoil, data in airfoil_data.items():
+    #plt.figure(figsize=(10, 6))
+    #plt.subplot(3, 2, 2)
+    plt.plot(data.index, data['CD'], label=f'NACA {airfoil}')
+plt.xlabel('Alpha (degrees)')
+plt.ylabel('Drag Coefficient (CD)')
+plt.title('Drag Coefficient vs Alpha')
+plt.legend()
+plt.grid(True)
+plt.show()
 
 
+for airfoil, data in airfoil_data.items():
+    #plt.figure(figsize=(10, 6))
+    #plt.subplot(3, 2, 3)
+    plt.plot(data.index, data['Cm'], label=f'NACA {airfoil}')
+plt.xlabel('Alpha (degrees)')
+plt.ylabel('Moment Coefficient (Cm)')
+plt.title('Moment Coefficient vs Alpha')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+for airfoil, data in airfoil_data.items():
+    #plt.figure(figsize=(10, 6))
+    #plt.subplot(3, 2, 4)
+    plt.plot(data['CD'], data['CL'], label=f'NACA {airfoil}')
+plt.xlabel('Drag Coefficient (CD)')
+plt.ylabel('Lift Coefficient (CL)')
+plt.title('Lift Coefficient vs Drag Coefficient')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+for airfoil, data in airfoil_data.items():
+    #plt.figure(figsize=(10, 6))
+    #plt.subplot(3, 2, 5)
+    plt.plot(data.index, data['CL'] / data['CD'], label=f'NACA {airfoil}')
+plt.xlabel('Alpha (degrees)')
+plt.ylabel('Lift over Drag (CL/CD)')
+plt.title('Lift over Drag vs Alpha')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+
+
+# Delete the files
+#os.remove(filename)
+#airfoil_name = f'naca{naca_number}'
+#os.remove(f'{airfoil_name}.dat')
