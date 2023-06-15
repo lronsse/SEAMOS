@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import structural_sizing as st
+
 import aerosandbox as asb
 
 
@@ -22,6 +22,7 @@ Outputs: Airfoil Polars (cl, cd, cm vs alpha, cl vs cd)
 # todo: adapt code for different airfoils, try to implement wing as well (maybe use aeropy?)
 """
 
+
 def download_airfoil(airfoil_number):
     url = f'http://airfoiltools.com/airfoil/seligdatfile?airfoil=naca{airfoil_number}-il'
     try:
@@ -37,6 +38,7 @@ def download_airfoil(airfoil_number):
     with open(f'{airfoil_number}.dat', 'w') as f:
         f.write(response.text)
     return airfoil_number
+
 
 def run_xfoil(naca_number, mach, reynolds, alpha_start, alpha_end, alpha_step):
     # Define the XFOIL command
@@ -102,7 +104,7 @@ def get_coefficients(alpha, data):
 
 
 
-naca_number = '1412'
+naca_number = '2412'
 mach = 0.1
 reynolds = 500000
 
@@ -124,7 +126,30 @@ data = read_data(filename)
 data = data.set_index('alpha')
 data = data.interpolate('linear')
 
+# ... your existing code ...
 
+# Define the range of alpha for the quasi-linear part of the lift curve
+alpha_linear_range = np.arange(0, 10, delta_alpha)  # Adjust this range as needed
+
+# Round the alpha values in the DataFrame index and alpha_linear_range to match the precision of your data
+precision = 2  # Adjust this value as needed
+data.index = pd.Series(data.index).round(precision).values
+alpha_linear_range = alpha_linear_range.round(precision)
+
+# Extract the lift coefficients in the linear range
+cl_linear_range = data.loc[alpha_linear_range, 'CL']
+
+# Fit a line to the lift coefficients in the linear range
+slope, intercept = np.polyfit(alpha_linear_range, cl_linear_range, 1)
+
+# Print the lift curve slope
+print(f'Lift curve slope: {slope} per degree')
+
+# Interpolate the drag coefficient at zero lift
+cd0 = np.interp(0, data.index, data['CD'])
+
+# Print the zero-lift drag coefficient
+print(f'Zero-lift drag coefficient (Cd0): {cd0}')
 
 
 
