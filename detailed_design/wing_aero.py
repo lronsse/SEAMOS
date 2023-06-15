@@ -30,7 +30,7 @@ airfoil = asb.Airfoil(
 )
 
 airfoil_tail = asb.Airfoil(
-    name="NACA0012",
+    name="NACA0009",
     generate_polars=True
 )
 

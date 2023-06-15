@@ -30,7 +30,7 @@ g = 9.81
 n_points = 1000
 rho_water = 1023.56
 airfoil = '2412'
-Df = 0.3
+Df = 0.18
 
 
 class Material:
