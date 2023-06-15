@@ -436,7 +436,7 @@ class Wing:
             S_projected_h = Sv - S_projected_v
             tail_anhedral = np.degrees(np.arctan(np.sqrt(S_projected_v / Sh)))
             # self.tail_area = 0.5 * (Sh / (np.cos(np.radians(tail_anhedral))) ** 2)
-            self.tail_area=0.05*self.wing_area
+            self.tail_area=0.15*self.wing_area
 
             # CL_a, CL_a_dash_h, downwash = scissor_values(self)
             # ShS = (1 / ((CL_a / Cl_a_dash_h) * (1 - downwash) * (tail_arm / self.mean_aerodynamic_chord) * Vh ** 2)) - (
@@ -574,10 +574,10 @@ AR = 12
 S = 0.75
 mach = 0.1
 moment = 150
-alu = Material(1600, 180, 250, 70, 70, 1.2)
+alu = Material(1800, 180, 250, 70, 70, 1.2)
 
 
-
+fuselage = Fuselage(1, 0.1, 1, thickness)
 wing = Wing(S, AR, mach, airfoil, thickness, alu, 16)
 wing.wing_main(False)
 print(wing.tip_chord)

@@ -39,7 +39,7 @@ wing = asb.Wing(
     xyz_le=[0, 0, 0],  # Position of the leading edge
     xsecs=[  # Define the cross sections of the wing
         asb.WingXSec(  # Root section
-            xyz_le=[0-x_ac, 0, 0],  # Position of the leading edge
+            xyz_le=[x_ac-0.5, 0, 0],  # Position of the leading edge
             chord=wing.root_chord,
             twist=0,  # In degrees
             airfoil=airfoil,
@@ -47,7 +47,7 @@ wing = asb.Wing(
             num_spanwise=12,
         ),
         asb.WingXSec(  # Tip section
-            xyz_le=[moment_arm-wing.le_tip, wing.wing_span / 2, 0],  # Position of the leading edge
+            xyz_le=[x_ac + wing.le_tip - 0.5, wing.wing_span / 2, 0],  # Position of the leading edge
             chord=wing.tip_chord,
             twist=0,  # In degrees
             airfoil=airfoil,
@@ -113,7 +113,7 @@ center_fuse = make_fuselage(
 )
 # Define the aircraft
 aircraft = asb.Airplane(
-    wings=[wing, v_tail, tail],
+    wings=[wing],
     fuselages=[center_fuse],
 )
 
