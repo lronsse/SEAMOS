@@ -11,6 +11,22 @@ Energy consumption for the hop(initial stall velocity, no initial velocity)
 Assumed Thrust no longer 11 N yay now its more 4
 """
 
+
+def drag_polar(Cd,rho,V,S):
+    D=0.5*rho*V**2*Cd*S
+    return D
+
+drag_vals=[]
+for i in range (50):
+    A=drag_polar(0.014,1.225,i,1.25)
+    drag_vals.append(A)
+
+
+plt.plot(drag_vals)
+plt.xlabel("velocity")
+plt.ylabel("Drag [N]")
+plt.show()
+
 def Advance_ratio(v_airspeed,omega_rotor,D_prop):
     J = 2*math.pi*v_airspeed/(omega_rotor*D_prop)
     return J
@@ -45,8 +61,8 @@ def Prop_calc(roc):
     Just run this for the propeller sizing
     """
     mass=15
-    print('Puffin mass',mass)
-    drag_cruise = 4
+    print('Puffin mass')
+    drag_cruise=11
     print('Drag in cruise',drag_cruise,'[N]')
 
     print('Rate of climb', roc, '[m/s]')
@@ -352,6 +368,7 @@ def Prop_calc_lite(roc,rpm1):
         D = Propeller_from_Thrust(Thrust_in_climb(climb_angle, drag_cruise, mass), v_airspeed, 1, 0.9, v_exit)
         v_exit_tab = np.append(v_exit_tab, v_exit)
         D_tab = np.append(D_tab, D)
+
     return D,thrust_max
 
 

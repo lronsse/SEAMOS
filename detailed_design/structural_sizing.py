@@ -30,7 +30,7 @@ g = 9.81
 n_points = 1000
 rho_water = 1023.56
 airfoil = '2412'
-Df = 0.3
+Df = 0.18
 
 
 class Material:
@@ -406,7 +406,7 @@ class Wing:
             Vh = 0.6 #0.35,0.6
             K_c=1 #1-1.4, 1 for conical shape tail [-]
             Df = 0.2 # diameter of fuselage [m]
-            AR_tail = 3 #(2 / 3) * self.aspect_ratio
+            AR_tail = (2 / 3) * self.aspect_ratio
             SM=0.05
             xac=0.26
             Df = 0.2
@@ -419,6 +419,7 @@ class Wing:
             m_b_2 = 0.15  # super sketch
             m = m_b_2 * 2 / self.wing_span
             S_net = self.wing_area - self.root_chord * Df
+            Sh_S=0.15
 
             half_sweep = np.arctan(np.tan(self.sweep_quarter_chord) - (4 / AR_tail) * (50 - 25) / 100 * (
                         1 - tail_taper_ratio) / (1 + tail_taper_ratio))
@@ -436,7 +437,7 @@ class Wing:
             S_projected_h = Sv - S_projected_v
             tail_anhedral = np.degrees(np.arctan(np.sqrt(S_projected_v / Sh)))
             # self.tail_area = 0.5 * (Sh / (np.cos(np.radians(tail_anhedral))) ** 2)
-            self.tail_area=0.05*self.wing_area
+            self.tail_area=Sh_S*self.wing_area
 
             # CL_a, CL_a_dash_h, downwash = scissor_values(self)
             # ShS = (1 / ((CL_a / Cl_a_dash_h) * (1 - downwash) * (tail_arm / self.mean_aerodynamic_chord) * Vh ** 2)) - (

@@ -5,7 +5,7 @@ import structural_sizing as ss
 wing = ss.wing
 
 ## Constants
-Vh_V = 0.8
+Vh_V = 0.65
 x_ac = 0.5
 Mach = 0.1
 beta = np.sqrt(1-Mach**2)
@@ -17,6 +17,7 @@ eta_wing = 0.95
 
 x_cg_fw = 0.45 #0.5585
 x_cg_aft = 0.55#0.5694
+dxcg=x_cg_aft-x_cg_fw
 
 
 tail_taper_ratio=0.4
@@ -86,6 +87,9 @@ dw = downwash(CL_a_w)
 CL_a_Aminh_stab = CL_a_Aminh(CL_a_w, b_f, b, S_net, S)
 CL_a_Aminh_cont = CL_a_Aminh(CL_a_w_low, b_f, b, S_net, S)
 
+#
+# def horizontal_tailplan():
+#     ShS_hori=(dxcg)/
 
 stability_params = {'CL_a_h': CL_a_h,
                     "CL_a_Aminh": CL_a_Aminh_stab,
