@@ -30,7 +30,6 @@ class WaterChamber:
         self.reservoir_gamma = reservoir_gamma  # -
 
         mantissa, exp = frexp(RESERVOIR_PRESSURE)
-        print(mantissa, exp)
         self.pressure_plot_range = mantissa*np.logspace(-2, exp, 300, base=2)
 
         self.density_water = density_water  # kg/m3
@@ -39,20 +38,20 @@ class WaterChamber:
 
     def dV_from_PV(self, chamber_pressure, chamber_volume):
         # SI units
-        if chamber_pressure < 1e5:
-            print(f'WARNING: chamber pressure low {chamber_pressure/1e5} bar')
-        if chamber_volume > 1.:
-            print(f'WARNING: chamber volume high {chamber_pressure * 1e3} L')
+        # if chamber_pressure < 1e5:
+        #     print(f'WARNING: chamber pressure low {chamber_pressure/1e5} bar')
+        # if chamber_volume > 1.:
+        #     print(f'WARNING: chamber volume high {chamber_pressure * 1e3} L')
 
         return np.sqrt(2*chamber_pressure/self.density_water) \
                * np.log(1 + self.density_water * chamber_volume/self.mass_system)
 
     def V_from_PdV(self, delta_velocity, chamber_pressure):
         # SI units
-        if chamber_pressure < 1e5:
-            print(f'WARNING: chamber pressure low {chamber_pressure/1e5} bar')
-        if chamber_volume > 1:
-            print(f'WARNING: chamber volume high {chamber_pressure * 1e3} L')
+        # if chamber_pressure < 1e5:
+        #     print(f'WARNING: chamber pressure low {chamber_pressure/1e5} bar')
+        # if chamber_volume > 1:
+        #     print(f'WARNING: chamber volume high {chamber_pressure * 1e3} L')
 
         return self.mass_system / self.density_water \
                * (np.exp(delta_velocity / np.sqrt(2 * chamber_pressure / self.density_water)) - 1)
@@ -70,6 +69,15 @@ class WaterChamber:
                                   - self.volume_reservoir**self.reservoir_gamma)/n_discharge)**(1/self.reservoir_gamma)
                 dv_list.append(self.dV_from_PV(chamber_pressure, chamber_volume))
             plt.plot(self.pressure_plot_range/1e5, dv_list, label=f'isentropic, n = {n_discharge}')
+
+    def get_isentropic(self, n_discharge):
+        dv_list = []
+        for chamber_pressure in self.pressure_plot_range:
+            chamber_volume = (((self.pressure_reservoir/chamber_pressure)
+                              * (self.volume_reservoir**self.reservoir_gamma)
+                              - self.volume_reservoir**self.reservoir_gamma)/n_discharge)**(1/self.reservoir_gamma)
+            dv_list.append(self.dV_from_PV(chamber_pressure, chamber_volume))
+        return(dv_list, self.pressure_plot_range/1e5)
 
     def plot_single_reservoir(self, label):
         capacity = self.pressure_reservoir * (self.volume_reservoir**self.reservoir_gamma)
@@ -97,6 +105,8 @@ class WaterChamber:
 
     def plot_isochoric(self, chamber_volume, bounding_lines=[.8, 1, 1.2]):
         line_colors = ['grey', 'black', 'grey']
+        if len(bounding_lines) == 1:
+            line_colors = ['black']
 
         for plot_counter, volume_factor in enumerate(bounding_lines):
             dv_list = []
@@ -104,8 +114,8 @@ class WaterChamber:
                 chamber_volume_plot = volume_factor*chamber_volume
                 dv_list.append(self.dV_from_PV(chamber_pressure, chamber_volume_plot))
             plt.plot(self.pressure_plot_range/1e5, dv_list,
-                     label=f'const. v_c =  {chamber_volume_plot*1E3} L',
-                     color=line_colors[plot_counter], linestyle='--')
+                     label=f'v_c = {chamber_volume_plot*1E3} L',
+                     color=line_colors[plot_counter])
 
     def show(self, title=''):
         plt.title(title)
@@ -124,15 +134,17 @@ if __name__ == '__main__':
     # PB.show('')
 
     #
-    PB = WaterChamber(volume_reservoir=1.5/1000, pressure_reservoir=300E5)
-    PB.plot_isentropic([1, 2, 8, 20])
+    PB = WaterChamber(volume_reservoir=1.44*124/88/1000, pressure_reservoir=310E5)
+    plt.axvline(20)
+    plt.axhline(21)
+    PB.plot_isentropic([2])
     PB.plot_isochoric(7.5E-3)
     PB.show('')
 
-    PB = WaterChamber(volume_reservoir=7.5/1000, pressure_reservoir=300E5)
-    PB.plot_isentropic([1, 2, 8, 20])
-    PB.plot_isochoric(7.5E-3)
-    PB.show('')
+    # PB = WaterChamber(volume_reservoir=7.5/1000, pressure_reservoir=300E5)
+    # PB.plot_isentropic([1, 2, 8, 20])
+    # PB.plot_isochoric(7.5E-3)
+    # PB.show('')
     # print(C1*5*28.2*1E5/1000)
 
     # CC = WaterChamber(volume_reservoir=.5/1000, pressure_reservoir=80E5)
