@@ -401,7 +401,7 @@ class Wing:
 
 
     def tail_sizing(self,tail_arm ,tail_taper_ratio):
-        for i in range(100):
+        for i in range(5):
             Vv = 0.03
             Vh = 0.6 #0.35,0.6
             K_c=1 #1-1.4, 1 for conical shape tail [-]
@@ -422,42 +422,33 @@ class Wing:
 
             half_sweep = np.arctan(np.tan(self.sweep_quarter_chord) - (4 / AR_tail) * (50 - 25) / 100 * (
                         1 - tail_taper_ratio) / (1 + tail_taper_ratio))
-            # CL_a = 2 * np.pi * self.aspect_ratio / (
-            #             2 + np.sqrt(4 + (self.aspect_ratio * beta / eta) ** 2 * (1 + (np.tan((half_sweep)) / beta) ** 2)))
-            # Cl_a_dash_h = CL_a * (
-            #             1 + 2.15 * Df / self.wing_span) * S_net / self.wing_area + 0.5 * np.pi * Df ** 2 / self.wing_area
-            # downwash = (1.75 * CL_a / (np.pi * self.aspect_ratio * (self.taper_ratio * r) ** 0.25 * (1 + np.abs(m)))) * (
-            #             1 - 0.012 * B_p)
 
-
-            Sh = (0.85 * Vh * self.mean_aerodynamic_chord * self.wing_area) / tail_arm
-            Sv = (0.85 * Vv * self.wing_span * self.wing_area) / tail_arm
-            S_projected_v = 0.33 * Sv
+            Sh = (0.85 * Vh * self.mean_aerodynamic_chord * self.wing_area) / 0.871
+            Sv = (0.85 * Vv * self.wing_span * self.wing_area) / 0.871
+            S_projected_v = np.sin(np.deg2rad(30)) * Sv
             S_projected_h = Sv - S_projected_v
             tail_anhedral = np.degrees(np.arctan(np.sqrt(S_projected_v / Sh)))
             # self.tail_area = 0.5 * (Sh / (np.cos(np.radians(tail_anhedral))) ** 2)
             self.tail_area=0.15*self.wing_area
-
-            # CL_a, CL_a_dash_h, downwash = scissor_values(self)
-            # ShS = (1 / ((CL_a / Cl_a_dash_h) * (1 - downwash) * (tail_arm / self.mean_aerodynamic_chord) * Vh ** 2)) - (
-            #             (xac - SM) / (
-            #                 (CL_a / Cl_a_dash_h) * (1 - downwash) * (tail_arm / self.mean_aerodynamic_chord) * Vh ** 2))
-            # self.tail_area = ShS * self.wing_area
-
+            self.one_tail_area=self.tail_area/2
+            self.v_tail_area=Sv-S_projected_h
+            self.h_tail_area=Sh/2
+            self.v_tail_span=np.sqrt(AR_tail * self.v_tail_area)
             self.tail_span = np.sqrt(AR_tail * self.tail_area)
             self.tail_halfspan = np.sqrt(AR_tail * self.tail_area)/2
             self.tail_root_chord = (2 * self.tail_area) / ((1 + tail_taper_ratio) * self.tail_span)  #
             self.tail_tip_chord = self.tail_root_chord * tail_taper_ratio  #
             self.tail_mac = (2 / 3) * (self.tail_root_chord) * (1 + tail_taper_ratio + tail_taper_ratio ** 2) / (
                         1 + tail_taper_ratio)  #
-            self.tail_qc_sweep = np.degrees(np.arctan(
+            self.tail_qc_sweep =  np.degrees(np.arctan(
                 (((np.tan(0)) - (4 / AR_tail) * ((-75 / 100) * ((1 - tail_taper_ratio) / (1 + tail_taper_ratio)))))))  #
             self.l_opt=K_c*np.sqrt((4*self.mean_aerodynamic_chord*self.wing_area*Vh)/(np.pi*Df))
             self.tail_arm=self.l_opt
             self.tail_ratio=self.tail_area/self.wing_area
             self.rear_offset=self.l_opt-0.84/2
+            # self.rudder_deflection_angle=-1/
 
-        return self.tail_area, self.tail_halfspan, self.tail_root_chord, self.tail_tip_chord, self.tail_mac, self.tail_qc_sweep, tail_anhedral,self.l_opt,self.tail_ratio,self.rear_offset
+        return self.tail_area, self.tail_halfspan, self.tail_root_chord, self.tail_tip_chord, self.tail_mac, self.tail_qc_sweep, tail_anhedral,self.l_opt,self.tail_ratio,self.rear_offset,self.v_tail_area,self.v_tail_span,self.h_tail_area,self.tail_mac,self.one_tail_area
 
     def plot_tail(self):
         n_points = 100
@@ -589,6 +580,6 @@ print(wing.taper_ratio)
 print(wing.le_tip)
 print(wing.mean_aerodynamic_chord)
 print(wing.chord(wing.wing_span / 2 - 0.868))
-print(f'Tail: half Span ({wing.tail_halfspan}), Area ({wing.tail_area}), l_opt ({wing.l_opt}), root chord ({wing.tail_root_chord}),tip chord ({wing.tail_tip_chord}),Sh/S ({wing.tail_ratio}),rear offset ({wing.rear_offset})')
+print(f'Tail: half Span ({wing.tail_halfspan}), Area ({wing.tail_area}), l_opt ({wing.l_opt}), root chord ({wing.tail_root_chord}),tip chord ({wing.tail_tip_chord}),Sh/S ({wing.tail_ratio}),rear offset ({wing.rear_offset}),vtail_area ({wing.v_tail_area}),vtail_span ({wing.v_tail_span}),h_area_test ({wing.h_tail_area}),tail_mac ({wing.tail_mac}),one tail area ({wing.one_tail_area})')
 
 

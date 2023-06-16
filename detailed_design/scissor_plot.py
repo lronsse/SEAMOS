@@ -51,7 +51,7 @@ cmac_fuselage=-1.8*(1-(2.5*b_f/l_f))*(np.pi*b_f*b_f*l_f)/(4*S*wing.mean_aerodyna
 
 
 Cm_ac = cmac_wing+cmac_fuselage
-CL_h = -1 #-0.35*Ah**(1/3) # Fixed tail
+CL_h = -0.8 #-0.35*Ah**(1/3) # Fixed tail
 print(CL_h)
 print("AHHHHH")
 
