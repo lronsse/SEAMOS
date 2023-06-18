@@ -6,7 +6,7 @@ import time
 import scipy
 import cv2
 
-pixel_brightness_threshold = 6.5e-02
+pixel_brightness_threshold = 9e-02
 
 # Json approach seaweed system from the side
 #"location": [0, 15, -1],
@@ -50,7 +50,8 @@ def seaweed_recognition_scaling(array):
     new = np.zeros(np.shape(array))
     for i in range(np.shape(array)[0]):
         for j in range(np.shape(array)[1]):
-             new[j, i] = (np.shape(array)[1]-j) * array[j, i]
+            #print(np.shape(array), j, i)
+            new[i, j] = (i) * array[i, j]
     return new
 
 def seaweed_recognition_first_point(array):
@@ -108,8 +109,7 @@ def polyfit(x, y, degree):
 
 def av_corrected(x, y):
     # Remove all values above the average
-    coeff_y = 4
-    y = y/ coeff_y
+
     average = np.average(y)
     y_corrected = []
     x_corrected = []
@@ -123,32 +123,46 @@ def av_corrected(x, y):
 
     return x_corrected, y_corrected, n, average
 
-def split_domain(m, x, y):
+def split_domain(m, x, y, mse_cutoff, n_cutoff, counter):
     # Split the domain into smaller one a create values to create separate plots for every of them.
     # Also average of every small domain to get the distance
     # And whether the mean squared error (mse) and the number of points passing the 'average test' is good enough to plot it
     # -> reason to believe the system is there
 
     line_size = 20
-    mse_cutoff = 0.5
-    n_cutoff = 10
+
     should_plot = np.zeros(m)
     midpoints = np.zeros(m)
+    mses = np.zeros(m)
+    ns = np.zeros(m)
     output_line = np.zeros((m, 2, line_size))
     x_corrected0, y_corrected0, n, average = av_corrected(x, y)
-    for i in range(m):
-        left_bound = int(len(x)*i/m)
-        right_bound = int(len(x)*(i+1)/m-1)
-        x_use = x[left_bound: right_bound]
-        y_use = y[left_bound: right_bound]
 
+    #fig, ax = plt.subplots(figsize=(9, 6))
+    #ax.scatter(x_corrected0, y_corrected0, s=30, alpha=0.7, edgecolors="k")
+
+    #plt.xlim([-100, 100])
+    #plt.ylim([0, 30])
+    #plt.xlabel("y distance [m]")
+    #plt.ylabel("x distance [m]")
+    #plt.savefig('images/averagedxy/plot' + str(counter))
+
+    for i in range(m):
+        left_bound = int(len(x_corrected0)*i/m)
+        right_bound = int(len(x_corrected0)*(i+1)/m-1)
+        x_use = x_corrected0[left_bound: right_bound]
+        y_use = y_corrected0[left_bound: right_bound]
         #print(i, x[0], x[-1], left_bound, right_bound, x_use[0], x_use[-1])
         x_corrected, y_corrected, n, average = av_corrected(x_use, y_use)
+
+
         a, b, r, p, std = scipy.stats.linregress(x_corrected, y_corrected)
         y_fit = a * x_corrected + b
         mse = np.square(y_fit - y_corrected).mean()
         midpoints[i] = y_corrected.mean()
         #print(i, average, mse, n)
+        mses[i] = mse
+        ns[i] = n
         if mse < mse_cutoff and n > n_cutoff:
             should_plot[i] = 1
 
@@ -158,7 +172,7 @@ def split_domain(m, x, y):
         for k in range(line_size):
             output_line[i, 0, k] = xseq[k]
             output_line[i, 1, k] = yseq[k]
-    return output_line, x_corrected0, y_corrected0, should_plot, midpoints
+    return output_line, x_corrected0, y_corrected0, should_plot, midpoints, mses,ns
 
 def rot2eul(rotation_matrix):
     # Matrix rotation
@@ -195,23 +209,35 @@ def position():
 
 def run_sonar():
     # Get a fan shaped array from sonar
+    coeff_y = 4
+    mse_cutoff = 0.01
+    n_cutoff = 1
+    m = 10
     sonar_image = state['ImagingSonar']
-    adjusted_image, point_array = seaweed_recognition_first_point(sonar_image)
+    #adjusted_image, point_array = seaweed_recognition_first_point(sonar_image)
+    scaled_image = seaweed_recognition_scaling(sonar_image)
+    adjusted_image, point_array = seaweed_recognition_first_point(scaled_image)
     array_to_image(sonar_image, "original" + str(i))
+    array_to_image(scaled_image, "scaled" + str(i))
     array_to_image(adjusted_image, "adjusted" + str(i))
 
     x, y = square_to_fan(point_array)
+    y = y/4
 
     # Split domain and plot
-    output, x_corrected, y_corrected, should_plot, midpoints = split_domain(5, x, y)
+    output, x_corrected, y_corrected, should_plot, midpoints, mses, ns = split_domain(m, x, y, mse_cutoff, n_cutoff, i)
     fig, ax = plt.subplots(figsize=(9, 6))
     plt.xlim([-100, 100])
-    plt.ylim([-100, 100])
-    print(should_plot)
+    plt.ylim([0, 30])
+    plt.xlabel("y distance [m]")
+    plt.ylabel("x distance [m]")
+    #print(should_plot)
+    #should_plot = np.ones(m)
+    #print('mses, ns: ',mses, ns)
     for k in range(len(output)):
         if should_plot[k] == 1:
-            plt.plot(output[k, 0], output[k, 1], color='orange')
-            print(should_plot * midpoints)
+            plt.plot(output[k, 0], output[k, 1], linewidth=2, color='orange')
+    #print('shouldplot: ',should_plot * midpoints)
 
     ax.scatter(x_corrected, y_corrected, s=60, alpha=0.7, edgecolors="k")
     # x, y, z, roll, pitch, yaw = position()
@@ -219,7 +245,7 @@ def run_sonar():
     plt.savefig('images/plot' + str(i))
     time.sleep(0.2)
     plt.close()
-    return should_plot * midpoints
+    return should_plot
 
 def camera_noise(img):
     mean = 0
@@ -272,8 +298,8 @@ def run_camera():
     cv2.destroyAllWindows()
 
 # Cutoffs for the mean squared error and number of points that have to pass the 'average test' to decide that there is a system there
-mse_cutoff = 10
-n_cutoff = 28
+mse_cutoff = 0.5
+n_cutoff = 10
 
 # Direction of motion
 command = np.array([0,0,0,0,10,10,10,10])
@@ -286,8 +312,19 @@ with holoocean.make(scenario) as env:
 
         if 'ImagingSonar' in state:
             where_system = run_sonar()
-            if "LeftCamera" in state:
-                run_camera()
+            left = np.sum(where_system[0:int(len(where_system)/2)])
+            right = np.sum(where_system[int(len(where_system) / 2):len(where_system)])
+            print(where_system)
+            if left > right:
+                print('left')
+            if right > left:
+                print('right')
+            else:
+                print('equal')
+
+
+            #if "LeftCamera" in state:
+            #    run_camera()
             #plt.ioff()
             #plt.show()
 

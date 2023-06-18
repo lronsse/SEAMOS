@@ -19,7 +19,7 @@ def on_release(key):
         pressed_keys.remove(key.char)
 
 #### GET SONAR CONFIG
-scenario = "PierHarbor-HoveringImagingSonar"
+scenario = "ExampleLevel-HoveringSonarCamera"
 config = holoocean.packagemanager.get_scenario(scenario)
 config = config['agents'][0]['sensors'][-1]["configuration"]
 azi = config['Azimuth']
@@ -47,7 +47,7 @@ fig.canvas.draw()
 fig.canvas.flush_events()
 
 #### RUN SIMULATION
-command = np.array([0,0,0,0,-20,-20,-20,-20])
+command = np.array([0,0,0,0,20,20,20,20])
 with holoocean.make(scenario) as env:
     while 1!=0:
         env.act("auv0", command)
@@ -62,7 +62,7 @@ with holoocean.make(scenario) as env:
             fig.canvas.flush_events()
             plt.ioff()
             plt.show()
-            time.sleep(1)
+            time.sleep(0.5)
             plt.close()
 
 
