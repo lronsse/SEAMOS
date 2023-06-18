@@ -34,7 +34,7 @@ t = [0]
 dt = 1
 i = 0
 if __name__ == '__main__':
-    while h[i] <= 5:  # maneuver up to 5m in height
+    while h[i] <= 0:  # maneuver up to 5m in height
         if h[i] <= jet_depth:
             a = (buoyancy_thrust - drag(Cd, V[i], diameter_uav, length_uav)) / mass_uav
             dV = a * dt
@@ -44,3 +44,7 @@ if __name__ == '__main__':
         i += 1
         print(h[i])
 
+plt.plot(V, h)
+plt.xlabel('Velocity [m/s]')
+plt.ylabel('Height from waterline [m]')
+plt.savefig('wat_buoyancy.png', dpi=360)
