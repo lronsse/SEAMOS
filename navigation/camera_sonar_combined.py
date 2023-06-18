@@ -210,7 +210,7 @@ def position():
 def run_sonar():
     # Get a fan shaped array from sonar
     coeff_y = 4
-    mse_cutoff = 0.01
+    mse_cutoff = 0.02
     n_cutoff = 1
     m = 10
     sonar_image = state['ImagingSonar']
@@ -245,8 +245,17 @@ def run_sonar():
     plt.savefig('images/plot' + str(i))
     time.sleep(0.2)
     plt.close()
-    return should_plot
-
+    return should_plot, should_plot * midpoints
+def bounds (var, bound_low, bound_high):
+    i = 0
+    while i < len(var):
+        if var[i] > bound_high:
+            var[i] = bound_high
+        elif var[i] < bound_low:
+            var[i] = bound_low
+        i += 1
+    print(var)
+    return var
 def camera_noise(img):
     mean = 0
     stddev = 180
@@ -298,12 +307,17 @@ def run_camera():
     cv2.destroyAllWindows()
 
 # Cutoffs for the mean squared error and number of points that have to pass the 'average test' to decide that there is a system there
-mse_cutoff = 0.5
+mse_cutoff = 0.01
 n_cutoff = 10
 
 # Direction of motion
-command = np.array([0,0,0,0,10,10,10,10])
-
+command = np.array([0,0,0,0,5,5,5,5])
+val = 2
+gainp1 = 1
+gaind = 1
+act0 = 0
+act = 0
+bound = 7
 # Start simulation
 with holoocean.make(scenario) as env:
     for i in range(3000):
@@ -311,16 +325,29 @@ with holoocean.make(scenario) as env:
         state = env.tick()
 
         if 'ImagingSonar' in state:
-            where_system = run_sonar()
+            where_system, shoulplot = run_sonar()
             left = np.sum(where_system[0:int(len(where_system)/2)])
             right = np.sum(where_system[int(len(where_system) / 2):len(where_system)])
+
+            gainp2 = abs(left - right)
+            act = act + (act - act0)*gaind
+            act = int(val * gainp1 * gainp2)
+            act0 = np.copy(act)
             print(where_system)
+            print(command)
+            #print(shoulplot)
             if left > right:
                 print('left')
+                command[[4, 6]] += act
+                command[[5, 7]] -= act
             if right > left:
                 print('right')
+                command[[4, 6]] -= act
+                command[[5, 7]] += act
+
             else:
                 print('equal')
+            command = bounds(command, -bound, bound)
 
 
             #if "LeftCamera" in state:
