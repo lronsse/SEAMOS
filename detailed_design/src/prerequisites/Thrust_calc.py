@@ -570,15 +570,15 @@ eta_motor = .8
 lift_to_drag = 20
 c_l = 1.356
 c_d = 0.05  # cruise
-mass = 17
+mass = 14
 wing_area = 0.75
 eta_prop = 0.8
 drag_in_cruise = 0.5 * wing_area * v_airspeed ** 2 * Atmosphere(120).density * c_d
-Sizing_for_VTOL(17,15,15)
+#Sizing_for_VTOL(mass,15,15)
 print(drag_in_cruise,'drag in cruise [N]')
 Prop_calc(roc,drag_in_cruise)
-time_tab,distance_tab,energy_tab,altitude_tab=Optimal_flight_energy(roc)
-Plot_optimal(time_tab,distance_tab,energy_tab,altitude_tab,roc)
+#time_tab,distance_tab,energy_tab,altitude_tab=Optimal_flight_energy(roc)
+#Plot_optimal(time_tab,distance_tab,energy_tab,altitude_tab,roc)
 time_tab,distance_tab,energy_tab,altitude_tab=Optimal_flight_energy2(roc,drag_in_cruise)
 Plot_optimal(time_tab,distance_tab,energy_tab,altitude_tab,roc)
 Plot_for_different_roc(drag_in_cruise)
