@@ -22,8 +22,8 @@ Izz = 2 * ( 1 / 12 ) * C_tip ** 3 * t_skin + 2 * ( ( 1 / 12 ) * t_tail * t_skin 
 
 ### aerodynamic loads
 
-def lift(V, S, Cl):
-    L = ( 1 / 2 ) * 1.225 * V ** 2 * S * Cl * np.cos((np.pi / 6)) ** 2
+def lift(V, S, Cl, rho):
+    L = ( 1 / 2 ) * rho * V ** 2 * S * Cl * np.cos((np.pi / 6)) ** 2
     return L
 
 def stress_lift(L, b, I, y):
@@ -38,7 +38,14 @@ def shear_lift(V, t, h, Ixx):
     tau = tau / 1000000
     return tau
 
-L = lift(20, S, Cl)
+Diam = 0.014
+t_circ = 0.0012
+R_0 = Diam / 2
+I_circ = np.pi * R_0 ** 3 * t_circ
+sigma_shaft = ( ( 45.6 * R_0 ) / I_circ ) / 1000000 #* 1.5
+print('shaft stress:',sigma_shaft)
+
+L = lift(2, S, Cl, 1023)
 sigma_ad = stress_lift(L, b, Ixx, (t_tail/2))
 tau_ad = shear_lift(L, t_skin, t_tail, Ixx)
 print('lift:', L)
@@ -60,4 +67,14 @@ tau_impact = shear_lift(F, t_skin, C_tip, Izz)
 
 print('normal stress due to impact:', sigma_impact)
 print('shear stress due to impact:',tau_impact)
+
+def hinge_mom(rho, V ):
+    S = ( C_tip + C_root ) / 2 * b
+    c = C_root
+    Cm = 0.05
+    M = Cm * ( 1 / 2 ) * rho * V ** 2 * S * c
+    return M
+
+print('air moment:', hinge_mom(1.225, 20) * 1.5 )
+print('water moment:', hinge_mom(1023, 2) * 1.5  )
 
