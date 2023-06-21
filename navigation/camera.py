@@ -16,7 +16,7 @@ for _ in range(1000):
         img_no_noise = img
         # Generate random Gaussian noise
         mean = 0
-        stddev = 250
+        stddev = 300
         noise = np.zeros(img.shape, np.uint8)
         cv2.randn(noise, mean, stddev)
 
