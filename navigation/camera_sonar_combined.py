@@ -207,7 +207,7 @@ def position():
 
     return x, y, z, alpha, beta, gamma
 
-def run_sonar():
+def run_sonar(state, i):
     # Get a fan shaped array from sonar
     coeff_y = 4
     mse_cutoff = 0.02
@@ -307,118 +307,117 @@ def run_camera():
     cv2.destroyAllWindows()
 
 # Cutoffs for the mean squared error and number of points that have to pass the 'average test' to decide that there is a system there
-mse_cutoff = 0.05
-n_cutoff = 10
 
-# Direction of motion
-command = np.array([0,0,0,0,5,5,5,5])
-val = 2
-gainp1 = 1
-gaind = 2
-act0 = 0
-act = 0
-e0 = 0
-e = 0
-gain1 = 1
-gain2 = 1
-bound = 7
-flip = 1
-sonar_recognition = []
-x = []
-y = []
-es = []
 # Start simulation
-with holoocean.make(scenario) as env:
-    for i in range(3000):
-        env.act("auv0", command)
-        state = env.tick()
+def simulation(ticks, gain1, gain2):
 
-        if 'ImagingSonar' in state:
-            where_system, shouldplot = run_sonar()
-            left = np.sum(where_system[0:int(len(where_system)/2)])
-            right = np.sum(where_system[int(len(where_system) / 2):len(where_system)])
-
-            e = left - right
-            ediff = e - e0
-            e0 = left - right
-
-            act = e * gain1 + (e0-e) * gain2
-
-            #print(where_system, shouldplot)
-            #print(command)
-            act = int(abs(act))
-            #print(shoulplot)
-            if 'PoseSensor' in state:
-                pose = state['PoseSensor']
+    # Direction of motion
+    command = np.array([0, 0, 0, 0, 5, 5, 5, 5])
 
 
-            if left > right:
-                print('left')
-                command[[4, 6]] += act
-                command[[5, 7]] -= act
-                sonar_recognition.append(-1)
-                x.append((pose[0][3] + 10.1))
-                y.append(pose[1][3])
-                es.append(e)
-            if right > left:
-                print('right')
-                command[[4, 6]] -= act
-                command[[5, 7]] += act
-                sonar_recognition.append(1)
-                x.append((pose[0][3] + 10.1))
-                y.append(pose[1][3])
-                es.append(e)
+    bound = 7
 
-            else:
-                print('equal')
-                sonar_recognition.append(0)
-                x.append((pose[0][3] + 10.1))
-                y.append(pose[1][3])
-                es.append(e)
-            command = bounds(command, 0, bound)
-    print(x, y, sonar_recognition)
-    """
-    plt.plot(x, y)
-    plt.plot([0, 18], [0, 0])
-    plt.plot(x, sonar_recognition, 'bo')
-    plt.xlabel('Distance along the system [m]')
-    plt.ylabel('Distance from the plane of the system [m]')
-    plt.show()
-    plt.plot(x, y)
-    plt.plot([0, 18], [0, 0])
-    plt.plot(x, es, 'bo')
-    plt.xlabel('Distance along the system [m]')
-    plt.ylabel('Distance from the plane of the system [m]')
-    plt.show()
-    plt.plot(x, sonar_recognition, 'bo')
-    plt.xlabel('Distance along the system [m]')
-    plt.show()
-    plt.plot(x, es, 'bo')
-    plt.xlabel('Distance along the system [m]')
-    plt.show()
-    """
-    fig, ax = plt.subplots(figsize=(11, 7))
-    plt.xlim([-1, 18])
-    plt.ylim([-2, 2])
-    ax2 = ax.twinx()
-    ax.plot(x, y, color='b', label='Path of the vehicle')
-    ax.plot([0, 18], [0, 0], color='g', label='Seaweed system' )
-    ax2.plot(x, es, 'om', label='e')
+    sonar_recognition = []
+    x = []
+    y = []
+    es = []
+    with holoocean.make(scenario) as env:
+        for i in range(ticks):
+            env.act("auv0", command)
+            state = env.tick()
 
-    ax.set_xlabel('Distance along the system [m]')
-    ax.set_ylabel('Distance from the plane of the system [m]', color='b')
-    ax2.set_ylabel('Confidence level', color='m')
+            if 'ImagingSonar' in state:
+                where_system, shouldplot = run_sonar(state, i)
+                left = np.sum(where_system[0:int(len(where_system)/2)])
+                right = np.sum(where_system[int(len(where_system) / 2):len(where_system)])
 
-    # defining display layout
-    plt.tight_layout()
-    ax2.legend(loc="upper right")
-    ax.legend(loc="upper left")
+                e = left - right
+                e0 = left - right
 
-    plt.legend()
-    # show plot
-    plt.show()
-    fig.savefig('pathplot')
+                act = e * gain1 + (e0-e) * gain2
 
+                #print(where_system, shouldplot)
+                #print(command)
+                act = int(abs(act))
+                #print(shoulplot)
+                if 'PoseSensor' in state:
+                    pose = state['PoseSensor']
+
+
+                if left > right:
+                    print('left')
+                    command[[4, 6]] += act
+                    command[[5, 7]] -= act
+                    sonar_recognition.append(-1)
+                    x.append((pose[0][3] + 10.1))
+                    y.append(pose[1][3])
+                    es.append(e)
+                if right > left:
+                    print('right')
+                    command[[4, 6]] -= act
+                    command[[5, 7]] += act
+                    sonar_recognition.append(1)
+                    x.append((pose[0][3] + 10.1))
+                    y.append(pose[1][3])
+                    es.append(e)
+
+                else:
+                    print('equal')
+                    sonar_recognition.append(0)
+                    x.append((pose[0][3] + 10.1))
+                    y.append(pose[1][3])
+                    es.append(e)
+                command = bounds(command, 0, bound)
+        #print(x, y, sonar_recognition)
+        yarray = np.array(y)
+        mse = np.square(y).mean()
+        """
+        plt.plot(x, y)
+        plt.plot([0, 18], [0, 0])
+        plt.plot(x, sonar_recognition, 'bo')
+        plt.xlabel('Distance along the system [m]')
+        plt.ylabel('Distance from the plane of the system [m]')
+        plt.show()
+        plt.plot(x, y)
+        plt.plot([0, 18], [0, 0])
+        plt.plot(x, es, 'bo')
+        plt.xlabel('Distance along the system [m]')
+        plt.ylabel('Distance from the plane of the system [m]')
+        plt.show()
+        plt.plot(x, sonar_recognition, 'bo')
+        plt.xlabel('Distance along the system [m]')
+        plt.show()
+        plt.plot(x, es, 'bo')
+        plt.xlabel('Distance along the system [m]')
+        plt.show()
+        """
+        fig, ax = plt.subplots(figsize=(11, 7))
+        plt.xlim([-1, 18])
+        plt.ylim([-2, 2])
+        ax2 = ax.twinx()
+        ax.plot(x, y, color='b', label='Path of the vehicle')
+        ax.plot([0, 18], [0, 0], color='g', label='Seaweed system' )
+        ax2.plot(x, es, 'om', label='e')
+
+        ax.set_xlabel('Distance along the system [m]')
+        ax.set_ylabel('Distance from the plane of the system [m]', color='b')
+        ax2.set_ylabel('Confidence level', color='m')
+
+        # defining display layout
+        plt.tight_layout()
+        ax2.legend(loc="upper right")
+        ax.legend(loc="upper left")
+
+
+        plt.legend()
+        # show plot
+        #plt.show()
+        mse = str(mse)
+        mse = mse[:5]
+        fig.savefig('gainp' + str(gain1) + 'gaind'+ str(gain2) + 'mse' + mse + '.png')
+        plt.clf()
+
+        return mse
     #JSON
     #"location": [-10, -1, -4],
     #"rotation": [0.0, 0.0, 0.0]
@@ -429,6 +428,27 @@ with holoocean.make(scenario) as env:
             #    run_camera()
             #plt.ioff()
             #plt.show()
-
+ticks = 100
+gain1 = 0
+gain2 = 0
+incr = 1
+max_gain = 3
+gain1s = []
+while gain1 < max_gain:
+    gain2s = []
+    gain2 = 0
+    while gain2 < max_gain:
+        mse = simulation(ticks, gain1, gain2)
+        gain2s.append(mse)
+        gain2 += incr
+    gain1s.append(gain2s)
+    gain1 += incr
+mses = np.array(gain1s, dtype=float)
+print(mses)
+plt.imshow(mses, cmap='summer', interpolation='nearest')
+plt.xlabel('Proportional gain')
+plt.ylabel('Differential gain')
+plt.show()
+plt.savefig('gain_heatmap.png')
 
 print("Finished Simulation!")
