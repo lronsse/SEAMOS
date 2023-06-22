@@ -403,13 +403,13 @@ class Wing:
     def tail_sizing(self,tail_arm ,tail_taper_ratio):
         for i in range(5):
             Vv = 0.03
-            Vh = 0.6 #0.35,0.6
+            Vh = 0.65 #0.35,0.6
             K_c=1 #1-1.4, 1 for conical shape tail [-]
-            Df = 0.2 # diameter of fuselage [m]
+            Df = 0.18 # diameter of fuselage [m]
             AR_tail = 3 #(2 / 3) * self.aspect_ratio
             SM=0.05
             xac=0.26
-            Df = 0.2
+            Df = 0.18
             eta = 0.85
             Mach = 0.1
             beta = np.sqrt(1 - Mach ** 2)
@@ -430,6 +430,7 @@ class Wing:
             tail_anhedral = np.degrees(np.arctan(np.sqrt(S_projected_v / Sh)))
             # self.tail_area = 0.5 * (Sh / (np.cos(np.radians(tail_anhedral))) ** 2)
             self.tail_area=0.15*self.wing_area
+            # self.tail_area=0.101023489556
             self.one_tail_area=self.tail_area/2
             self.v_tail_area=Sv-S_projected_h
             self.h_tail_area=Sh/2
@@ -471,12 +472,12 @@ class Wing:
         plt.plot(c_t, np.ones(n_points) * self.tail_span / 2, color='black')
         plt.plot(leading_edge, y, color='black')
         plt.plot(trailing_edge, y, color='black')
-        plt.plot(x_quarter, y, 'r--', label='Quarter Chord')
-        plt.plot(x_mean_aerodynamic_chord, np.ones(n_points) * y_lemac, 'r', label='Mean Aerodynamic Chord')
+        plt.plot(x_quarter, y, 'r--', label='Tail Fin Quarter Chord')
+        plt.plot(x_mean_aerodynamic_chord, np.ones(n_points) * y_lemac, 'r', label='Tail Fin Mean Aerodynamic Chord')
         plt.plot()
         plt.xlabel('Chordwise position (m)')
-        plt.ylabel('Spanwise position (m)')
-        plt.title('Tail Planform')
+        plt.ylabel(' Spanwise position (m)')
+        plt.title('Wing-Tail Planform')
         plt.legend()
         plt.axis('equal')
         plt.grid(True)

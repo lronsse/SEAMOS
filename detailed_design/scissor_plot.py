@@ -10,7 +10,7 @@ x_ac = 0.5
 Mach = 0.1
 beta = np.sqrt(1-Mach**2)
 beta_low=np.sqrt(1-0.0437318**2)
-MAC = wing.mean_aerodynamic_chord
+MAC = 0.269 ###################
 
 eta_tail = 0.95
 eta_wing = 0.95
@@ -21,27 +21,27 @@ dxcg=x_cg_aft-x_cg_fw
 
 
 tail_taper_ratio=0.4
-A = wing.aspect_ratio
-Ah = 4 #tail AR
-AR_tail=4
-half_sweep_wing = np.arctan(np.tan(wing.sweep_quarter_chord) - (4 / A) * (50 - 25) / 100 * (
+A = 12
+Ah = 3 #tail AR
+AR_tail= 3
+half_sweep_wing = np.arctan(np.tan(0) - (4 / A) * (50 - 25) / 100 * (
                     1 - wing.taper_ratio) / (1 + wing.taper_ratio))
 half_sweep_tail = np.arctan(np.tan(0) - (4 / AR_tail) * (50 - 100) / 100 * (
                     1 - tail_taper_ratio) / (1 + tail_taper_ratio))
-b_f = 0.2 #Fuselage diameter [m]
-b =wing.wing_span #wingspan [m]
-S =  0.75 #wing surface area [m^2]
+b_f = 0.18 #Fuselage diameter [m]
+b = 3.05 #wingspan [m] ####################33
+S =  0.771 #wing surface area [m^2]
 Sh = wing.tail_area #wing surface area [m^2]
-S_net = S - (wing.root_chord*b_f) # Kinda sketch (I did S_covered = root chord * b_f :-/)
+S_net = S - (0.362*b_f) # Kinda sketch (I did S_covered = root chord * b_f :-/) #######################3
 taper = wing.taper_ratio # wing
 
-l_h = wing.tail_arm # Not accurate *******
+l_h = 1.764-0.67446-0.258 ########################
 r = 2*l_h/b
 m_b_2 = 0.2
 m = m_b_2 * 2/b
 B_p = 2 # Number of propeller blades per propeller
-l_f=0.84
-delta=wing.sweep_quarter_chord
+l_f=1.784
+delta=0
 CL_zero=0.2
 cm0_airfoil=-0.068
 CL_a_dash_h_lowv=(2*np.pi*A / (2 + np.sqrt(4 + (A*beta_low/eta_wing)**2 * (1 + (np.tan((half_sweep_wing))/beta_low)**2 ))))* (1 + 2.15*b_f/b) * S_net/S + 0.5*np.pi*b_f**2/S
@@ -113,7 +113,7 @@ plt.fill_between(x_cg_lst, cont_line, facecolor="lightgray", hatch="X", edgecolo
 plt.axvline(x_cg_fw, linestyle='dashed', color='black')
 plt.axvline(x_cg_aft, linestyle='dashed', color='black')
 
-plt.axhline(Sh/S, color='black')
+plt.axhline(0.15, color='black')
 
 plt.ylim(0, 0.5)
 plt.xlim(0, 1)

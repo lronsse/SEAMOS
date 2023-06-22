@@ -1,15 +1,12 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import structural_sizing as ss
-
-wing=ss.wing
 
 # Constants
 V_water = 2 # velocity [m/s]
 rho_W = 1023  # density of water [kg/m^3]
-slender_ratios = np.arange(3, 12, 1)  # list of slenderness ratios to test
-lengths = np.arange(0.5, 3, 0.5)  # list of lengths to test
+slender_ratios = np.arange(3, 10, 0.1)  # list of slenderness ratios to test
+lengths = np.arange(0.5, 2, 0.05)  # list of lengths to test
 AR = 12
 taper_ratio = 0.4
 
@@ -22,8 +19,8 @@ def calculate_drag(length, slender):
     eta_hull = 5  # 3-6 depending on the type of hull
     A_front = (4 * np.pi * (D_hull / 2) ** 2) / 2  # Front area of hull (assuming semi-sphere) [m^2]
     Cd_water = 0.02  # from literature
-    S_wing=wing.wing_area
-    S_tail=wing.tail_area
+    S_wing=0.75
+    S_tail=3*(0.15*S_wing/2)
 
     # Reynolds number calculation
     mu_water = 0.00126
@@ -90,13 +87,14 @@ input_diameter = 0.18
 
 print(input_length/input_diameter)
 
+print(1.4/0.18)
 # Find the corresponding indices in the arrays
 length_index = np.where(lengths == input_length)[0]
 diameter_index = np.where(slender_ratios == input_length / input_diameter)[0]
 
 # Plotting heatmap with increased resolution
 fig, ax = plt.subplots()
-im = ax.imshow(drag_values, cmap='coolwarm', extent=[slender_ratios[0], slender_ratios[-1], lengths[0], lengths[-1]], aspect='auto',interpolation="bilinear")
+im = ax.imshow(drag_values, cmap='jet', extent=[slender_ratios[0], slender_ratios[-1], lengths[0], lengths[-1]], aspect='auto')
 cbar = fig.colorbar(im)
 cbar.set_label('Drag [N]')
 ax.set_xlabel('Slenderness Ratio')
@@ -104,10 +102,10 @@ ax.set_ylabel('Length [m]')
 ax.set_title('Drag Heatmap for Different Lengths and Slenderness Ratios')
 
 # Add diameter annotations to the heatmap
-for i in range(len(lengths)):
-    for j in range(len(slender_ratios)):
-        diameter = lengths[i] / slender_ratios[j]
-        ax.text(slender_ratios[j], lengths[i], f'{diameter:.2f}', ha='center', va='center', color='white')
+# for i in range(len(lengths)):
+#     for j in range(len(slender_ratios)):
+#         diameter = lengths[i] / slender_ratios[j]
+#         ax.text(slender_ratios[j], lengths[i], f'{diameter:.2f}', ha='center', va='center', color='white')
 
 # Plot the input point
 ax.plot(slender_ratios[diameter_index], lengths[length_index], 'ro', markersize=10)
