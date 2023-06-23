@@ -85,6 +85,7 @@ def Velocity_change(v_initial,mass,body_length,nose_length,r0,wing_location,wing
         surface_tab.append(S_submerged)
         volume_tab.append(volume)
     print(volume,'Volume nose')
+    print('max nose', np.max(impact_tab))
     print('nose to box',x)
     beginning_folded=0.493
     x_nose_to_box=np.linspace(nose_length,beginning_folded,200)

@@ -78,7 +78,7 @@ def Prop_calc(roc, drag_cruise):
         torque_tab = np.append(torque_tab, power / (rpm * 2 * np.pi / 60))
     plt.plot(rpm_tab, D_tab, label='Diameter vs RPM')
     # plt.plot(rpm_tab, v_exit_tab)
-    plt.xlabel('RPM')
+    plt.xlabel('RPM [1/min]')
     plt.ylabel('Diameter [m]')
     plt.axvline(x=5000, color='r', label='The RPM chosen')
     plt.title('Diameter vs RPM')
@@ -86,7 +86,7 @@ def Prop_calc(roc, drag_cruise):
     plt.show()
     plt.plot(rpm_tab, torque_tab, label='Torque vs RPM')
     # plt.plot(rpm_tab, v_exit_tab)
-    plt.xlabel('RPM')
+    plt.xlabel('RPM [1/min]')
     plt.ylabel('Torque [Nm]')
     plt.axvline(x=5000, color='r', label='The RPM chosen')
     plt.title('Torque vs RPM')
@@ -125,7 +125,7 @@ def Energy_hop_VTOL(v_cruise, cruise_alt, mass):
         climb_angle = np.pi / 2
         velocity = 0
         for i in range(100):
-            drag_climb_tab = np.append(drag_climb_tab, Thrust_in_climb(climb_angle, 10 * (velocity / 20) ** 2, 17))
+            drag_climb_tab = np.append(drag_climb_tab, Thrust_in_climb(climb_angle, 10 * (velocity / 20) ** 2, 13.64))
             climb_angle = climb_angle - np.pi / 100
             velocity = velocity + 0.15
         drag_climb = np.average(drag_climb_tab)
@@ -173,7 +173,7 @@ def Energy_hop_NOT_VTOL(v_cruise, cruise_alt, mass):
         climb_angle = np.pi / 2
         velocity = 0
         for i in range(100):
-            drag_climb_tab = np.append(drag_climb_tab, Thrust_in_climb(climb_angle, 10, 17))
+            drag_climb_tab = np.append(drag_climb_tab, Thrust_in_climb(climb_angle, 10, 13.64))
             climb_angle = climb_angle - np.pi / 100
         drag_climb = np.average(drag_climb_tab)
         hop_distance = np.sqrt(100 ** 2 + 100 ** 2)
@@ -226,18 +226,18 @@ def Rho_average(altitude):
 
 def Optimal_flight_energy(roc):
     # roc=1
-    range = 30000
+    range = 60000
     v_airspeed = 20
     eta_motor = .8
 
     lift_to_drag = 25
     c_l = 1.365
-    c_d = 0.05  # cruise
+    c_d = 0.045  # cruise
     c_d_0 = 0.05
     c_d_max = 0.1
     # cl/cd 25
-    mass = 17
-    wing_area = 0.75
+    mass = 13.64
+    wing_area = 0.771
     eta_prop = 0.8
     drag_in_cruise = 0.5 * wing_area * v_airspeed ** 2 * Atmosphere(120).density * c_d
     time_tab = [[], [], [], []]
@@ -306,6 +306,7 @@ def Plot_optimal(time_tab, distance_tab, energy_tab, altitude_tab, roc):
     print('climb energy [J]', energy_tab[0][index1])
     print('cruise energy [J]', energy_tab[1][index1])
     print('Total energy [J]', energy_tab[2][index1])
+    print('Total energy with 20% cruise margin', 2*(energy_tab[0][index1]+energy_tab[1][index1]*1.2))
     plt.plot(altitude_tab, energy_tab[2], label='total energy')
     plt.plot(altitude_tab, energy_tab[0], label='energy climb')
     plt.plot(altitude_tab, energy_tab[1], label='energy cruise')
@@ -335,16 +336,17 @@ def Plot_optimal(time_tab, distance_tab, energy_tab, altitude_tab, roc):
 
 
 def Plot_for_different_roc(drag_in_cruise):
+    range_meters=60000
     time_tab1, distance_tab1, energy_tab1, altitude_tab1 = Optimal_flight_energy2(0.5, drag_in_cruise)
-    time_tab2, distance_tab2, energy_tab2, altitude_tab2 = Optimal_flight_energy2(1, drag_in_cruise)
+    time_tab2, distance_tab2, energy_tab2, altitude_tab2 = Optimal_flight_energy2(1, drag_in_cruise,range_meters)
     time_tab3, distance_tab3, energy_tab3, altitude_tab3 = Optimal_flight_energy2(2, drag_in_cruise)
     time_tab4, distance_tab4, energy_tab4, altitude_tab4 = Optimal_flight_energy2(4, drag_in_cruise)
     time_tab5, distance_tab5, energy_tab5, altitude_tab5 = Optimal_flight_energy2(6, drag_in_cruise)
-    plt.plot(altitude_tab1[0:400], energy_tab1[2][0:400], label='total energy 0.5 [m/s]')
-    plt.plot(altitude_tab2[0:400], energy_tab2[2][0:400], label='total energy 1 [m/s]')
-    plt.plot(altitude_tab3[0:400], energy_tab3[2][0:400], label='total energy 2 [m/s]')
-    plt.plot(altitude_tab4[0:400], energy_tab4[2][0:400], label='total energy 4 [m/s]')
-    plt.plot(altitude_tab5[0:400], energy_tab5[2][0:400], label='total energy 6 [m/s]')
+    #plt.plot(altitude_tab1[0:400], energy_tab1[2][0:400], label='ROC 0.5 [m/s]')
+    plt.plot(altitude_tab2[0:400], energy_tab2[2][0:400], label='ROC 1 [m/s]')
+    #plt.plot(altitude_tab3[0:400], energy_tab3[2][0:400], label='ROC 2 [m/s]')
+    #plt.plot(altitude_tab4[0:400], energy_tab4[2][0:400], label='ROC 4 [m/s]')
+    #plt.plot(altitude_tab5[0:400], energy_tab5[2][0:400], label='ROC 6 [m/s]')
 
     plt.xlabel('altitude [m]')
     plt.ylabel('energy[J]')
@@ -354,7 +356,7 @@ def Plot_for_different_roc(drag_in_cruise):
 
 
 def Prop_calc_lite(roc, rpm1):
-    mass = 17
+    mass = 13.64
     drag_cruise = drag_in_cruise
     v_airspeed = 20
     climb_angle = np.arcsin(float(roc / v_airspeed))  ##degree
@@ -382,7 +384,7 @@ def Plot_diameter_vs_roc(rpm):
     for i in range(len(roc)):
         D_tab[i] = Prop_calc_lite(roc[i], rpm)[0]
         climb_angle = np.arcsin(float(roc[i] / v_airspeed))
-        thrusts_tab[i] = Thrust_in_climb(climb_angle, drag_in_cruise, 17)
+        thrusts_tab[i] = Thrust_in_climb(climb_angle, drag_in_cruise, 13.64)
     plt.plot(roc, D_tab)
     plt.ylabel('diameter [m]')
     plt.xlabel('Rate of Climb [m/s]')
@@ -398,7 +400,7 @@ def Plot_diameter_vs_roc(rpm):
 
 
 def Prop_calc_vtol(roc, drag_cruise):
-    mass = 17
+    mass = 13.64
     print('Puffin mass', mass)
     # drag_cruise = 4
     print('Drag in cruise', drag_cruise, '[N]')
@@ -440,9 +442,9 @@ def Prop_calc_vtol(roc, drag_cruise):
     return D
 
 
-def Optimal_flight_energy2(roc, drag_in_cruise):
+def Optimal_flight_energy2(roc, drag_in_cruise,range):
     # roc=1
-    range_meters = 30000
+    range_meters = range
     time_tab = [[], [], [], []]
     distance_tab = [[], [], []]
     energy_tab = [[], [], []]
@@ -499,6 +501,9 @@ def Sizing_for_VTOL(mass, climb_altitude, stall_speed):
     thrust_tab = []
     eta_rotor = 0.9
     rpm1 = 5000
+    D_tab=[]
+    time_tab=[]
+    energy_tab=[]
     for acceleration in range(5, 44, 1):
         thrust_max = 0
         speed = 0
@@ -520,6 +525,20 @@ def Sizing_for_VTOL(mass, climb_altitude, stall_speed):
         height = acceleration * time ** 2 / 2
         print(height)
         print('diameter', D)
+        D_tab.append(D)
+        time_tab.append(time)
+        energy_tab.append(energy)
+        thrust_tab.append(thrust_append)
+    plt.plot(time_tab[:10],D_tab[:10])
+    plt.title('Diameter vs Climb Time')
+    plt.xlabel('Climb Time [s]')
+    plt.ylabel('Propeller Diameter [m]')
+    plt.show()
+    plt.plot(time_tab[:10], thrust_tab[:10])
+    plt.title('Thrust vs Climb Time')
+    plt.xlabel('Climb time [s]')
+    plt.ylabel('Thrust [N]')
+    plt.show()
     acceleration = float(input('Pick the acceleration buckaroo'))
     thrust_max = 0
     speed = 0
@@ -546,7 +565,7 @@ def Sizing_for_VTOL(mass, climb_altitude, stall_speed):
     energy_climb = thrust_climb * stall_speed * climb_time
     climb_distance = (climb_time * np.sqrt(stall_speed ** 2 - roc ** 2))
     energy = energy + energy_climb
-    print(energy)
+    print(energy,D)
     glide_range = climb_altitude * lift_to_drag
     hop_distance = np.sqrt(100 ** 2 + 100 ** 2)
     cruise_distance = hop_distance - glide_range - climb_distance
@@ -558,29 +577,69 @@ def Sizing_for_VTOL(mass, climb_altitude, stall_speed):
     print(energy)
 
 
+
+def Units_vs_Range():
+    roc=1
+    drag_in_cruise = 0.5 * wing_area * v_airspeed ** 2 * Atmosphere(120).density * c_d
+    time_tab, distance_tab, energy_tab, altitude_tab = Optimal_flight_energy2(roc, drag_in_cruise, 30000)
+    altitude1=120
+    for altitude in altitude_tab:
+        if altitude > altitude1:
+            index1 = list(altitude_tab).index(altitude)
+            break
+    energy_for_flight_30 = 2 * energy_tab[2][index1]*1.2
+    energy_total= 482*3600
+    #
+    print('energy_total',energy_total)
+    print('energy_total flight ', energy_for_flight_30)
+    energy_for_underwater = 300 * 3600
+    energy_per_2_units = energy_for_underwater / 10
+    altitude1 = 120
+    range_tab = np.linspace(20000,70000,50)
+    energy_flight_tab=[]
+    number_of_units_tab=[]
+    for i in range(0,50,1):
+        time_tab, distance_tab, energy_tab, altitude_tab = Optimal_flight_energy2(roc, drag_in_cruise, range_tab[i])
+        for altitude in altitude_tab:
+            if altitude > altitude1:
+                index1 = list(altitude_tab).index(altitude)
+                break
+        energy_for_flight=2*energy_tab[2][index1]
+        energy_flight_tab.append(energy_for_flight)
+        number_of_units_tab.append(np.round_((energy_total-energy_for_flight)/energy_per_2_units))
+        print('For the Range of:',range_tab[i],'we can do',number_of_units_tab[i],'units')
+
+
+    plt.plot(range_tab, number_of_units_tab)
+    plt.show()
+
+
 # print(0.5*Rho_average(100)*20**2*1.25*0.05)
 # Energy_hop_VTOL(12,15,15)
 # Energy_hop_NOT_VTOL(12,15,15)
 # print(20*np.sin(20/180*np.pi))
 #stall speed 15
 roc = 1
-range_meters = 30000
+range_meters = 60000
 v_airspeed = 20
 eta_motor = .8
 lift_to_drag = 20
-c_l = 1.356
-c_d = 0.05  # cruise
-mass = 14
-wing_area = 0.75
+c_l = 1.25
+c_d = 0.045  # cruise
+c_d_max=0.088
+mass = 13.64
+wing_area = 0.771
 eta_prop = 0.8
 drag_in_cruise = 0.5 * wing_area * v_airspeed ** 2 * Atmosphere(120).density * c_d
 #Sizing_for_VTOL(mass,15,15)
+print('max speed',np.sqrt(25.8/(0.5 * wing_area  * Atmosphere(120).density * c_d)))
 print(drag_in_cruise,'drag in cruise [N]')
-Prop_calc(roc,drag_in_cruise)
+#Prop_calc(roc,drag_in_cruise)
 #time_tab,distance_tab,energy_tab,altitude_tab=Optimal_flight_energy(roc)
 #Plot_optimal(time_tab,distance_tab,energy_tab,altitude_tab,roc)
-time_tab,distance_tab,energy_tab,altitude_tab=Optimal_flight_energy2(roc,drag_in_cruise)
-Plot_optimal(time_tab,distance_tab,energy_tab,altitude_tab,roc)
-Plot_for_different_roc(drag_in_cruise)
+time_tab,distance_tab,energy_tab,altitude_tab=Optimal_flight_energy2(roc,drag_in_cruise,range_meters)
+#Plot_optimal(time_tab,distance_tab,energy_tab,altitude_tab,roc)
+#Plot_for_different_roc(drag_in_cruise)
 
-Plot_diameter_vs_roc(float(input('RPM again pls')))
+#Plot_diameter_vs_roc(float(input('RPM again pls')))
+Units_vs_Range()
