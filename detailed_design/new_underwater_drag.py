@@ -3,7 +3,7 @@ import math
 # from structural_sizing import Wing
 import matplotlib.pyplot as plt
 
-# wing=ss.Wing
+wing=ss.Wing
 ##Drag estimation method from Submarine Hydrodynamics textbook page 107
 
 #Constants
@@ -17,18 +17,26 @@ eta_hull = 5 #3-6 depending on type of hull
 A_front = (4*np.pi*(D_hull/2)**2)/2 #Front area of hull (assuming semi-sphere) [m^2]
 Cd_water=0.02 #from literature
 # A_plan =1.25+(0.146*3) #Wing area + tail area #diving in wings unfolded
-AR=12
-S=0.75
-taper_ratio=0.4
-b=np.sqrt(AR*S)
-c_root=(2*S)/((1+taper_ratio)*b)
-hinge_diameter=0
-overlapped_area=0.5*(2*c_root)*(b/2)-(0.5*b/2*(2*c_root-hinge_diameter))
-new_area=(3*0.12*0.265)-overlapped_area+(3*(0.09*0.2*0.29))
+# AR=12
+# taper_ratio=0.4
+# b=np.sqrt(AR*S)
+# c_root=(2*S)/((1+taper_ratio)*b)
+# hinge_diameter=0
+# overlapped_area=0.5*(2*c_root)*(b/2)-(0.5*b/2*(2*c_root-hinge_diameter))
+# new_area=(3*0.12*0.265)-overlapped_area+(3*(0.09*0.2*0.29))
 # A_plan =new_area +(0.05624*3) #Swept overlapped Wing area + tail area
-A_plan= 2*(0.3571428571428572*0.12*0.26530612244897966)+(3*(0.09*0.2*0.29))
+S=0.7
+wing_root_chord=
+wing_mac=
+wing_thickness=0.12*wing_mac ##Assuming NACA2412
+tail_halfspan=
+tail_mac=
+tail_thickness=0.12*tail_mac
+wing_wetted_area=wing_root_chord*wing_mac*wing_thickness
+tail_wetted_area=tail_halfspan*tail_thickness*tail_mac
+A_plan= 2*(wing_wetted_area)+(3*(tail_wetted_area)) #2*(Wing_Root_chord*Wing_thickness*0.3)+(3*(tail_thickness*tail_half_span*0.3)) 0.3 is for wetted geometry purposes
 # A_trans= 2*np.pi*D_hull/2*L_hull+4*np.pi*(D_hull/2)**2
-A_trans=(0.18*1.764)+(2*(0.258*0.29))+(0.12*0.26530612244897966*0.26530612244897966)
+# A_trans=(0.18*1.764)+(2*(0.258*0.29))+(0.12*0.26530612244897966*0.26530612244897966)
 # mu_water=1.3 * 10 ** ( -6 )
 mu_water = 0.00126
 ReW = rho_W*V_water*L_hull/mu_water  #Reynolds number
