@@ -8,7 +8,7 @@ M_c2h2 = 26.04  # [g/mol]
 M_co2 = 44.01  # [g/mol]
 M_h20 = 18.01528  # [g/mol]
 R = 8.314  # [J/(mol*K)]
-T = 2600  # [K] # In air combustion
+T = 3000  # [K] # In air combustion
 impulse = 16 * 18  # [Mass x dV]
 rho_w = 1000  # [kg/m^3]
 
@@ -53,9 +53,9 @@ def mass():
 
 def volume():
     target_mass = 1  # g
-    mass_step = 0.2  # [g]
+    mass_step = 0.1  # [g]
     target_V = 10  # [L]
-    V_step = 0.1  # [L]
+    V_step = 1  # [L]
 
     mass = [mass_step]
     for i in range(int(target_mass / mass_step)):
@@ -155,10 +155,10 @@ def solid():
 
     return a, diam_nozzle, V_gas, t_water, len_solid, mass_solid, A_solid
 
-a, diam_nozzle, V_gas, t_water, len_solid, mass_solid, A_solid = solid()
+mass()
 
 
-solid()
+volume()
 plt.legend()
 plt.show()
 
