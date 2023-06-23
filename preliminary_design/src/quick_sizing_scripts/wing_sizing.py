@@ -43,7 +43,7 @@ class Configuration:
         self.name = name
         self.v_stall = v_stall
         self.v_cruise = v_cruise
-        self.v_max = self.v_cruise * 1.25
+        self.v_max = self.v_cruise * 1.1
         self.cl_max = cl_max
         self.cd_0 = cd_0
         self.cd_vtol = cd_vtol
@@ -66,7 +66,7 @@ class Configuration:
         self.n_hops = n_hops
         self.roc_vtol = roc_vtol
         self.plot = True
-        optimisation = True
+        optimisation = False
         if optimisation:
             self.plot = False
         self.power_consumption_flight_controller = 20
@@ -280,16 +280,12 @@ class Configuration:
 
 rho_0 = 1.225
 g = 9.81
-d_flight = 80000
+d_flight = 120000
 energy_density = 200
 
 if __name__ == '__main__':
-    v_stall = np.linspace(10, 25)
-    wing_surface = []
-    for v in v_stall:
-        puffin = Configuration('puffin', v, 20, 1.356, 0.02, 0.5, 0.8, 0.8, 12, 4000, 6000, 17, 1, False, 1, 15, 20, 1, 6.5)
-        wing_surface.append(puffin.wing_surface)
+    v = 15
+    puffin = Configuration('Puffin', v, 20, 1.25, 0.02, 0.5, 0.8, 0.8, 12, 200, 300, 13.233, 1, False, 1, 15, 20, 1, 6.5)
+    print(puffin.wing_surface)
 
-    plt.plot(v_stall, wing_surface)
-    plt.show()
 

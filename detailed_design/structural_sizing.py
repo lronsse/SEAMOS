@@ -135,7 +135,7 @@ class Wing:
         plt.legend()
         plt.axis('equal')
         plt.grid(True)
-        # plt.show()
+        plt.show()
 
     def chord(self, y):
         """
@@ -179,6 +179,9 @@ class Wing:
         if plot:
             plt.plot(xu, yu, 'b')
             plt.plot(xl, yl, 'b')
+            plt.title(f'NACA{number}')
+            plt.xlabel('x')
+            plt.ylabel('t')
             plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
@@ -303,19 +306,21 @@ class Wing:
         if plot:
             plt.figure(figsize=(12, 6))
 
-            plt.subplot(2, 2, 1)
+            #plt.subplot(2, 2, 1)
             plt.plot(x, self.shear_force, label='Shear force')
             plt.xlabel('x')
             plt.ylabel('V(x)')
             plt.title('Shear Force Diagram')
             plt.grid(True)
+            plt.show()
 
-            plt.subplot(2, 2, 2)
+            #plt.subplot(2, 2, 2)
             plt.plot(x, self.bending_moment, label='Bending moment')
             plt.xlabel('x')
             plt.ylabel('M(x)')
             plt.title('Bending Moment Diagram')
             plt.grid(True)
+            plt.show()
             '''
             plt.subplot(2, 2, 3)
             plt.plot(x, v, label='Deflection')
@@ -383,7 +388,7 @@ class Wing:
 
         wing_mass_function = interpolate_masses(np.linspace(0, self.wing_span / 2, n_points), mass_array)
 
-        self.mass = np.sum(mass_array) * 2
+        self.mass = np.sum(mass_array) * self.wing_span
 
         return self.mass, wing_mass_function
 
@@ -394,6 +399,7 @@ class Wing:
             xu, yu, xl, yl, dummy1, dummy2 = self.naca4(chord_length=chordlength, plot=False)
 
             d_volume = float(np.trapz(yu-yl, xu))
+            print(d_volume)
             volume_array.append(d_volume)
 
         self.total_volume = np.average(volume_array) * self.wing_span
@@ -560,27 +566,27 @@ class Fuselage:
 
 
 
-thickness = 1 * 10 ** -3
+thickness = 0.5 * 10 ** -3
 
 AR = 12
-S = 0.75
+S = 0.771
 mach = 0.1
-moment = 150
-alu = Material(1800, 180, 250, 70, 70, 1.2)
+moment = 50
+alu = Material(1800, 180, 250, 50, 30, 1.2)
 
 
 fuselage = Fuselage(1, 0.1, 1, thickness)
 wing = Wing(S, AR, mach, airfoil, thickness, alu, 16)
-wing.wing_main(False)
-print(wing.tip_chord)
-print(wing.root_chord)
-print(wing.wing_span)
-print(wing.mass)
-print(wing.total_volume)
-print(wing.taper_ratio)
-print(wing.le_tip)
-print(wing.mean_aerodynamic_chord)
-print(wing.chord(wing.wing_span / 2 - 0.868))
+wing.wing_main(True)
+print(f'tip chord {wing.tip_chord}')
+print(f'root chord{wing.root_chord}')
+print(f'span {wing.wing_span}')
+print(f'mass {wing.mass}')
+print(f'total volume {wing.total_volume}')
+
+print(f'airfoil volume {wing.mass / alu.rho}')
+print(f'MAC {wing.mean_aerodynamic_chord}')
+
 print(f'Tail: half Span ({wing.tail_halfspan}), Area ({wing.tail_area}), l_opt ({wing.l_opt}), root chord ({wing.tail_root_chord}),tip chord ({wing.tail_tip_chord}),Sh/S ({wing.tail_ratio}),rear offset ({wing.rear_offset}),vtail_area ({wing.v_tail_area}),vtail_span ({wing.v_tail_span}),h_area_test ({wing.h_tail_area}),tail_mac ({wing.tail_mac}),one tail area ({wing.one_tail_area})')
 
 
