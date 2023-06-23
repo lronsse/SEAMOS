@@ -11,9 +11,9 @@ Re = ( V_current * l ) / nu # calculate reynoldsnumber, used to pick a Cd
 Cd = 0.3 # The chosen Cd
 ozin_to_Nm = 0.0070615 # convert random internet unit
 Q = 180 * ozin_to_Nm # the conversion
-m = 16 # [ kg ] estimated mass of the drone
+m = 13.67 # [ kg ] estimated mass of the drone
 accel = 0.1 # acceleration required to reach speed of 1 [ m/s ] in 10 seconds
-diam = 0.3
+diam = 0.18
 n_blades=1
 # diam = np.linspace(0.05, 0.4, 100)
 a=1.5
@@ -113,12 +113,12 @@ def battery_weight(P, V_ground):
 # now using: Q = 0.19, rpm = 16,000
 # phi = 10degr, alpha = 5 degr
 
-T_req = thrust_required(Cd, V_flow, 0.4) # / 2 # uncomment when thinking of 2 props
-P_req = power_required(Cd, V_flow, 0.4)
-rpm_req = rpm_from_thrust(T_req, V_flow, 2.39, 0.7 )
+T_req = thrust_required(Cd, V_flow, diam) # / 2 # uncomment when thinking of 2 props
+P_req = power_required(Cd, V_flow, diam)
+rpm_req = rpm_from_thrust(T_req, V_flow, Q, 0.7)
 T_del = thrust_from_motor(0.7, 0.7, 220, 4.29, V_flow)
 P_i = eta_total(T_req, V_flow, 24, 5.1) * P_req
-e_p = eta_prop(T_req, V_flow, 16000, 0.19 )
+e_p = eta_prop(T_req, V_flow, 16000, Q )
 
 
 #print('thrust delivered:', T_del)
