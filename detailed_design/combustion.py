@@ -52,8 +52,8 @@ def mass():
 
 
 def volume():
-    target_mass = 1  # g
-    mass_step = 0.1  # [g]
+    target_mass = 1.2  # g
+    mass_step = 0.3  # [g]
     target_V = 10  # [L]
     V_step = 1  # [L]
 
@@ -72,6 +72,8 @@ def volume():
         V_oxygen = n_oxygen * 22.4E-3  # [m^3] # Required oxygen volume for combustion
         plt.axvline(V_oxygen * 10000, color=colors[i], linestyle='--')
         plt.plot(V[:-1], [pressure / 10000 for pressure in P_gas], label=f'mass = {mass[i]} [L]', color=colors[i])
+        plt.xlabel('Chamber Volume [L]')
+        plt.ylabel('Chamber Pressure [bar]')
         mass.append(round(mass[i] + mass_step, 5))
 
 
@@ -155,10 +157,11 @@ def solid():
 
     return a, diam_nozzle, V_gas, t_water, len_solid, mass_solid, A_solid
 
-mass()
-
+#mass()
+#plt.legend()
+#plt.show()
 
 volume()
 plt.legend()
-plt.show()
+plt.savefig('CaC2_sizing.png')
 
