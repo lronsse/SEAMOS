@@ -99,21 +99,21 @@ if __name__ == '__main__':
     Main solution loop, initialising and plotting the 1D solver class for a submarine and airborne case
     """
     # Dict of initialisation parameters for the two cases
-    Cd_shared = 0.3
+    Cd_shared = 0.05
     m_shared = 16.
-    S_shared = 1.
+    S_shared = 1.25
     rho_water = 998.
     rho_air = 1.
     env = {
-        'Submerged': {
-            'm': m_shared,
-            'Cd': Cd_shared,
-            'S': S_shared,
-            'rho': rho_water,
-            'force_vertical': 5.,  # Buoyancy
-            'v_intl': 0.,
-            'force_max_try': 100000.
-        },
+        # 'Submerged': {
+        #     'm': m_shared,
+        #     'Cd': Cd_shared,
+        #     'S': S_shared,
+        #     'rho': rho_water,
+        #     'force_vertical': 5.,  # Buoyancy
+        #     'v_intl': 0.,
+        #     'force_max_try': 100000.
+        # },
         'Airborne': {
             'm': m_shared,
             'Cd': Cd_shared,
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     for title, pars in plot_params.items():
         for name, params in env.items():
             study = VerticalPropulsion(**params)
-            dV_range = np.arange(0.1, 16.1, .1)
+            dV_range = np.arange(0.1, 30.1, .1)
             results_array = []
             for dV_plot in dV_range:
                 idx = pars[0]
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         plt.legend()
         plt.show()
 
-    study = VerticalPropulsion(**env['Submerged'])
+    study = VerticalPropulsion(**env['Airborne'])
     print(study.drag(1.0))
     print(study.drag(5.0))
     print(study.drag(10.0))

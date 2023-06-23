@@ -30,7 +30,7 @@ g = 9.81
 n_points = 1000
 rho_water = 1023.56
 airfoil = '2412'
-Df = 0.3
+Df = 0.18
 
 
 class Material:
@@ -179,6 +179,9 @@ class Wing:
         if plot:
             plt.plot(xu, yu, 'b')
             plt.plot(xl, yl, 'b')
+            plt.title(f'NACA{number}')
+            plt.xlabel('x')
+            plt.ylabel('t')
             plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
@@ -303,19 +306,21 @@ class Wing:
         if plot:
             plt.figure(figsize=(12, 6))
 
-            plt.subplot(2, 2, 1)
+            #plt.subplot(2, 2, 1)
             plt.plot(x, self.shear_force, label='Shear force')
             plt.xlabel('x')
             plt.ylabel('V(x)')
             plt.title('Shear Force Diagram')
             plt.grid(True)
+            plt.show()
 
-            plt.subplot(2, 2, 2)
+            #plt.subplot(2, 2, 2)
             plt.plot(x, self.bending_moment, label='Bending moment')
             plt.xlabel('x')
             plt.ylabel('M(x)')
             plt.title('Bending Moment Diagram')
             plt.grid(True)
+            plt.show()
             '''
             plt.subplot(2, 2, 3)
             plt.plot(x, v, label='Deflection')
@@ -383,7 +388,7 @@ class Wing:
 
         wing_mass_function = interpolate_masses(np.linspace(0, self.wing_span / 2, n_points), mass_array)
 
-        self.mass = np.sum(mass_array) * 2
+        self.mass = np.sum(mass_array) * self.wing_span
 
         return self.mass, wing_mass_function
 
@@ -394,82 +399,63 @@ class Wing:
             xu, yu, xl, yl, dummy1, dummy2 = self.naca4(chord_length=chordlength, plot=False)
 
             d_volume = float(np.trapz(yu-yl, xu))
+            print(d_volume)
             volume_array.append(d_volume)
 
         self.total_volume = np.average(volume_array) * self.wing_span
         return self.total_volume
 
-    # def scissor_values(self):
-    #     Df=0.3
-    #     eta=0.85
-    #     Mach= 0.1
-    #     beta = np.sqrt(1 - Mach ** 2)
-    #     B_p=2
-    #     l_h=0.8
-    #     r = 2 * l_h / self.wing_span
-    #     m_b_2 = 0.25 #super sketch
-    #     m = m_b_2 * 2 / self.wing_span
-    #     S_net=self.wing_area-self.wing_root_chord*Df
-    #     half_sweep=np.arctan(np.tan(self.sweep_quarter_chord_rad)-(4/self.tail_aspect_ratio)*(50-25)/100 * (1-tail_taper_ratio)/(1+tail_taper_ratio))
-    #     CL_a= 2 * np.pi * self.aspect_ratio / (2 + np.sqrt(4 + (self.aspect_ratio * beta / eta) ** 2 * (1 + (np.tan((half_sweep)) / beta) ** 2)))
-    #     CL_a_dash_h = CL_a * (1 + 2.15 * Df / self.wing_span) * S_net / self.wing_area + 0.5 * np.pi * Df ** 2 / self.wing_area
-    #     downwash=(1.75 * CL_a / (np.pi * self.aspect_ratio * (self.taper_ratio * r) ** 0.25 * (1 + np.abs(m)))) * (1 - 0.012 * B_p)
-    #
-    #     return CL_a, CL_a_dash_h,downwash
-
 
     def tail_sizing(self,tail_arm ,tail_taper_ratio):
-        Vv = 0.03
-        Vh = 0.35 #0.35,0.6
-        K_c=1 #1-1.4, 1 for conical shape tail [-]
-        Df = 0.3 # diameter of fuselage [m]
-        AR_tail = 4 #(2 / 3) * self.aspect_ratio
-        SM=0.05
-        xac=0.5
-        Df = 0.3
-        eta = 0.85
-        Mach = 0.1
-        beta = np.sqrt(1 - Mach ** 2)
-        B_p = 2
-        l_h = 0.8
-        r = 2 * l_h / self.wing_span
-        m_b_2 = 0.15  # super sketch
-        m = m_b_2 * 2 / self.wing_span
-        S_net = self.wing_area - self.root_chord * Df
+        for i in range(5):
+            Vv = 0.03
+            Vh = 0.65 #0.35,0.6
+            K_c=1 #1-1.4, 1 for conical shape tail [-]
+            Df = 0.18 # diameter of fuselage [m]
+            AR_tail = 3 #(2 / 3) * self.aspect_ratio
+            SM=0.05
+            xac=0.26
+            Df = 0.18
+            eta = 0.85
+            Mach = 0.1
+            beta = np.sqrt(1 - Mach ** 2)
+            B_p = 2
+            l_h = 0.84/2
+            r = 2 * l_h / self.wing_span
+            m_b_2 = 0.15  # super sketch
+            m = m_b_2 * 2 / self.wing_span
+            S_net = self.wing_area - self.root_chord * Df
 
-        half_sweep = np.arctan(np.tan(self.sweep_quarter_chord) - (4 / AR_tail) * (50 - 25) / 100 * (
-                    1 - tail_taper_ratio) / (1 + tail_taper_ratio))
-        CL_a = 2 * np.pi * self.aspect_ratio / (
-                    2 + np.sqrt(4 + (self.aspect_ratio * beta / eta) ** 2 * (1 + (np.tan((half_sweep)) / beta) ** 2)))
-        Cl_a_dash_h = CL_a * (
-                    1 + 2.15 * Df / self.wing_span) * S_net / self.wing_area + 0.5 * np.pi * Df ** 2 / self.wing_area
-        downwash = (1.75 * CL_a / (np.pi * self.aspect_ratio * (self.taper_ratio * r) ** 0.25 * (1 + np.abs(m)))) * (
-                    1 - 0.012 * B_p)
+            half_sweep = np.arctan(np.tan(self.sweep_quarter_chord) - (4 / AR_tail) * (50 - 25) / 100 * (
+                        1 - tail_taper_ratio) / (1 + tail_taper_ratio))
 
-        Sh = (0.85 * Vh * self.mean_aerodynamic_chord * self.wing_area) / tail_arm
-        Sv = (0.85 * Vv * self.wing_span * self.wing_area) / tail_arm
-        S_projected_v = 0.33 * Sv
-        S_projected_h = Sv - S_projected_v
-        tail_anhedral = np.degrees(np.arctan(np.sqrt(S_projected_v / Sh)))
-        # self.tail_area = 0.5 * (Sh / (np.cos(np.radians(tail_anhedral))) ** 2)
+            Sh = (0.85 * Vh * self.mean_aerodynamic_chord * self.wing_area) / 0.871
+            Sv = (0.85 * Vv * self.wing_span * self.wing_area) / 0.871
+            S_projected_v = np.sin(np.deg2rad(30)) * Sv
+            S_projected_h = Sv - S_projected_v
+            tail_anhedral = np.degrees(np.arctan(np.sqrt(S_projected_v / Sh)))
+            # self.tail_area = 0.5 * (Sh / (np.cos(np.radians(tail_anhedral))) ** 2)
+            self.tail_area=0.15*self.wing_area
+            # self.tail_area=0.101023489556
+            self.one_tail_area=self.tail_area/2
+            self.v_tail_area=Sv-S_projected_h
+            self.h_tail_area=Sh/2
+            self.v_tail_span=np.sqrt(AR_tail * self.v_tail_area)
+            self.tail_span = np.sqrt(AR_tail * self.tail_area)
+            self.tail_halfspan = np.sqrt(AR_tail * self.tail_area)/2
+            self.tail_root_chord = (2 * self.tail_area) / ((1 + tail_taper_ratio) * self.tail_span)  #
+            self.tail_tip_chord = self.tail_root_chord * tail_taper_ratio  #
+            self.tail_mac = (2 / 3) * (self.tail_root_chord) * (1 + tail_taper_ratio + tail_taper_ratio ** 2) / (
+                        1 + tail_taper_ratio)  #
+            self.tail_qc_sweep =  np.degrees(np.arctan(
+                (((np.tan(0)) - (4 / AR_tail) * ((-75 / 100) * ((1 - tail_taper_ratio) / (1 + tail_taper_ratio)))))))  #
+            self.l_opt=K_c*np.sqrt((4*self.mean_aerodynamic_chord*self.wing_area*Vh)/(np.pi*Df))
+            self.tail_arm=self.l_opt
+            self.tail_ratio=self.tail_area/self.wing_area
+            self.rear_offset=self.l_opt-0.84/2
+            # self.rudder_deflection_angle=-1/
 
-        # CL_a, CL_a_dash_h, downwash = scissor_values(self)
-        ShS = (1 / ((CL_a / Cl_a_dash_h) * (1 - downwash) * (tail_arm / self.mean_aerodynamic_chord) * Vh ** 2)) - (
-                    (xac - SM) / (
-                        (CL_a / Cl_a_dash_h) * (1 - downwash) * (tail_arm / self.mean_aerodynamic_chord) * Vh ** 2))
-        self.tail_area = ShS * self.wing_area
-
-        self.tail_span = np.sqrt(AR_tail * self.tail_area)
-        self.tail_root_chord = (2 * self.tail_area) / ((1 + tail_taper_ratio) * self.tail_span)  #
-        self.tail_tip_chord = self.tail_root_chord * tail_taper_ratio  #
-        self.tail_mac = (2 / 3) * (self.tail_root_chord) * (1 + tail_taper_ratio + tail_taper_ratio ** 2) / (
-                    1 + tail_taper_ratio)  #
-        self.tail_qc_sweep = np.degrees(np.arctan(
-            (((np.tan(0)) - (4 / AR_tail) * ((-75 / 100) * ((1 - tail_taper_ratio) / (1 + tail_taper_ratio)))))))  #
-        self.l_opt=K_c*np.sqrt((4*self.mean_aerodynamic_chord*self.tail_area*Vh)/(np.pi*Df))
-
-
-        return self.tail_area, self.tail_span, self.tail_root_chord, self.tail_tip_chord, self.tail_mac, self.tail_qc_sweep, tail_anhedral,self.l_opt
+        return self.tail_area, self.tail_halfspan, self.tail_root_chord, self.tail_tip_chord, self.tail_mac, self.tail_qc_sweep, tail_anhedral,self.l_opt,self.tail_ratio,self.rear_offset,self.v_tail_area,self.v_tail_span,self.h_tail_area,self.tail_mac,self.one_tail_area
 
     def plot_tail(self):
         n_points = 100
@@ -484,7 +470,6 @@ class Wing:
         c_t = np.linspace(le_tip, te_tip, n_points)
         leading_edge = le_tip / (self.tail_span / 2) * y
         trailing_edge = self.tail_root_chord - (self.tail_root_chord - te_tip) / (self.tail_span / 2) * y
-
         y_lemac = self.tail_span / 2 * (self.tail_root_chord - self.tail_mac) / (self.tail_root_chord - self.tail_tip_chord)
         leading_edge_mean_aerodynamic_chord = le_tip / (self.tail_span / 2) * y_lemac
         x_mean_aerodynamic_chord = np.linspace(leading_edge_mean_aerodynamic_chord, leading_edge_mean_aerodynamic_chord + self.tail_mac, n_points)
@@ -493,12 +478,12 @@ class Wing:
         plt.plot(c_t, np.ones(n_points) * self.tail_span / 2, color='black')
         plt.plot(leading_edge, y, color='black')
         plt.plot(trailing_edge, y, color='black')
-        plt.plot(x_quarter, y, 'r--', label='Quarter Chord')
-        plt.plot(x_mean_aerodynamic_chord, np.ones(n_points) * y_lemac, 'r', label='Mean Aerodynamic Chord')
+        plt.plot(x_quarter, y, 'r--', label='Tail Fin Quarter Chord')
+        plt.plot(x_mean_aerodynamic_chord, np.ones(n_points) * y_lemac, 'r', label='Tail Fin Mean Aerodynamic Chord')
         plt.plot()
         plt.xlabel('Chordwise position (m)')
-        plt.ylabel('Spanwise position (m)')
-        plt.title('Tail Planform')
+        plt.ylabel(' Spanwise position (m)')
+        plt.title('Wing-Tail Planform')
         plt.legend()
         plt.axis('equal')
         plt.grid(True)
@@ -523,7 +508,7 @@ class Wing:
 
 
         self.total_volume = self.wing_total_volume(self.chord_array)
-        self.tail_sizing(0.75, 0.5)
+        self.tail_sizing(0.75/self.mean_aerodynamic_chord, 0.5)
         self.plot_tail()
         return
 
@@ -561,13 +546,15 @@ class Fuselage:
         """
         return delta_p * self.radius / self.thickness
 
-    def x_cg(self):
+    def x_cg(self,xcg_mac):
         """
         Function calculating the x_cg location of the fuselage
 
         :return: x-location of centre of gravity [m] of fuselage
         """
-        return self.length / 2
+
+        xcg=self.length/2 + xcg_mac*wing.mean_aerodynamic_chord
+        return xcg
 
     def mass(self, material):
         volume = self.thickness * 2 * np.pi * self.radius * self.length * self.n_fuselages
@@ -579,27 +566,27 @@ class Fuselage:
 
 
 
-thickness = 1 * 10 ** -3
+thickness = 0.5 * 10 ** -3
 
 AR = 12
-S = 0.75
+S = 0.771
 mach = 0.1
-moment = 150
-alu = Material(1600, 180, 250, 70, 70, 1.2)
+moment = 50
+alu = Material(1800, 180, 250, 50, 30, 1.2)
 
 
-
+fuselage = Fuselage(1, 0.1, 1, thickness)
 wing = Wing(S, AR, mach, airfoil, thickness, alu, 16)
-wing.wing_main(False)
-print(wing.tip_chord)
-print(wing.root_chord)
-print(wing.wing_span)
-print(wing.mass)
-print(wing.total_volume)
-print(wing.taper_ratio)
-print(wing.le_tip)
-print(wing.mean_aerodynamic_chord)
-print(wing.chord(wing.wing_span / 2 - 0.868))
-print(f'Tail: Span ({wing.tail_span}), Area ({wing.tail_area}), l_opt ({wing.l_opt}), root chord ({wing.tail_root_chord}),tip chord ({wing.tail_tip_chord})')
+wing.wing_main(True)
+print(f'tip chord {wing.tip_chord}')
+print(f'root chord{wing.root_chord}')
+print(f'span {wing.wing_span}')
+print(f'mass {wing.mass}')
+print(f'total volume {wing.total_volume}')
+
+print(f'airfoil volume {wing.mass / alu.rho}')
+print(f'MAC {wing.mean_aerodynamic_chord}')
+
+print(f'Tail: half Span ({wing.tail_halfspan}), Area ({wing.tail_area}), l_opt ({wing.l_opt}), root chord ({wing.tail_root_chord}),tip chord ({wing.tail_tip_chord}),Sh/S ({wing.tail_ratio}),rear offset ({wing.rear_offset}),vtail_area ({wing.v_tail_area}),vtail_span ({wing.v_tail_span}),h_area_test ({wing.h_tail_area}),tail_mac ({wing.tail_mac}),one tail area ({wing.one_tail_area})')
 
 
