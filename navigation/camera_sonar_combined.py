@@ -254,7 +254,7 @@ def bounds (var, bound_low, bound_high):
         elif var[i] < bound_low:
             var[i] = bound_low
         i += 1
-    print(var)
+    #print(var)
     return var
 def camera_noise(img):
     mean = 0
@@ -345,7 +345,7 @@ def simulation(ticks, gain1, gain2):
 
 
                 if left > right:
-                    print('left')
+                    #print('left')
                     command[[4, 6]] += act
                     command[[5, 7]] -= act
                     sonar_recognition.append(-1)
@@ -353,7 +353,7 @@ def simulation(ticks, gain1, gain2):
                     y.append(pose[1][3])
                     es.append(e)
                 if right > left:
-                    print('right')
+                    #print('right')
                     command[[4, 6]] -= act
                     command[[5, 7]] += act
                     sonar_recognition.append(1)
@@ -362,7 +362,7 @@ def simulation(ticks, gain1, gain2):
                     es.append(e)
 
                 else:
-                    print('equal')
+                    #print('equal')
                     sonar_recognition.append(0)
                     x.append((pose[0][3] + 10.1))
                     y.append(pose[1][3])
@@ -428,27 +428,43 @@ def simulation(ticks, gain1, gain2):
             #    run_camera()
             #plt.ioff()
             #plt.show()
-ticks = 100
-gain1 = 0
-gain2 = 0
-incr = 1
-max_gain = 3
+ticks = 3500
+progress = 0
+gain1 = -7
+gain2 = -7
+incr = 2
+max_gain = 8
 gain1s = []
-while gain1 < max_gain:
-    gain2s = []
-    gain2 = 0
-    while gain2 < max_gain:
-        mse = simulation(ticks, gain1, gain2)
-        gain2s.append(mse)
-        gain2 += incr
-    gain1s.append(gain2s)
-    gain1 += incr
-mses = np.array(gain1s, dtype=float)
-print(mses)
-plt.imshow(mses, cmap='summer', interpolation='nearest')
-plt.xlabel('Proportional gain')
-plt.ylabel('Differential gain')
-plt.show()
-plt.savefig('gain_heatmap.png')
+mse = simulation(ticks, 2, -4)
+#while gain1 < max_gain:
+#    gain2s = []
+#    gain2 = -7
+#    while gain2 < max_gain:
+#        mse = simulation(ticks, gain1, gain2)
+##        gain2s.append(mse)
+#        gain2 += incr
+#        progress += 1
+#        print(progress)
+#    gain1s.append(gain2s)
+#    gain1 += incr
+#with open('mses.txt', 'w') as f:
+#    for i in gain1s:
+#        for j in i:
+#            f.write(str(j))
+#            f.write('\n')
+#mses = np.array(gain1s, dtype=float)
+#print(mses)
+#fig, ax = plt.subplots()
+#plt.imshow(mses, cmap='summer', interpolation='nearest')
+#plt.colorbar(label="Mean Squared Error", orientation="vertical")
+#im = ax.imshow(mses)
+#ax.imshow(mses, cmap='summer', interpolation='nearest')
+#cbar = ax.figure.colorbar(im, ax = ax)
+#cbar.ax.set_ylabel("Color bar", rotation = -90)
 
+#plt.xlabel('Proportional gain')
+#plt.ylabel('Differential gain')
+#plt.show()
+#plt.savefig('gain_heatmap.png')
+# GOTTA ADD COLORBAR
 print("Finished Simulation!")
